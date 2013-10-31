@@ -46,7 +46,7 @@ class DecoderThread(Thread):
         self.oscClient.connect(sendAddress)
         # Query the type of the link and instantiate a decoder accordingly.
         datalink = pcapObj.datalink()
-x        if pcapy.DLT_EN10MB == datalink:
+        if pcapy.DLT_EN10MB == datalink:
             self.decoder = EthDecoder()
         elif pcapy.DLT_LINUX_SLL == datalink:
             self.decoder = LinuxSLLDecoder()
@@ -82,9 +82,9 @@ x        if pcapy.DLT_EN10MB == datalink:
             tcp = ip.child()
             src = (ip.get_ip_src(), tcp.get_th_sport() )
             dst = (ip.get_ip_dst(), tcp.get_th_dport() )
-            detectStart(tcp, src, dst):
+            self.detectStart(tcp, src, dst)
 
-    def detectStart(tcp, src, dst):
+    def detectStart(thread, tcp, src, dst): # when passed, tcp grows into two arguments the first of which is a thread, why?!
         # stolen from: https://github.com/larrytheliquid/buffer-overflows/blob/master/project-2/project-2-submission/main.py
         # Handshake 1
         if tcp.get_th_flags() == TH_SYN:
@@ -110,9 +110,6 @@ x        if pcapy.DLT_EN10MB == datalink:
     def sendStart(src, dst):
         print "succesful handshake"
         print (src, dst)
-        
-    def detectEnd(tcpPacket):
-        # if source sends FIN
 
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
@@ -130,35 +127,10 @@ class FakeSocket(StringIO):
         return self
 
 # methods
-     
-def getInterface():
-    # Grab a list of interfaces that pcap is able to listen on.
-    # The current user will be able to listen from all returned interfaces,
-    # using open_live to open them.
-    ifs = findalldevs()
-
-    # No interfaces available, abort.
-    if 0 == len(ifs):
-        print "You don't have enough permissions to open any interface on this system."
-        sys.exit(1)
-
-    # Only one interface available, use it.
-    elif 1 == len(ifs):
-        print 'Only one interface present, defaulting to it.'
-        return ifs[0]
-
-    # Ask the user to choose an interface from the list.
-    count = 0
-    for iface in ifs:
-        print '%i - %s' % (count, iface)
-        count += 1
-    idx = int(raw_input('Please select an interface: '))
-
-    return ifs[idx]
 
 def main(filter):
 
-    dev = getInterface()
+    dev = 'en1'
 
     # Open interface for catpuring.
     p = open_live(dev, 1500, 0, 100)
