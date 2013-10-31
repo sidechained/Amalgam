@@ -39,13 +39,14 @@ from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
 
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
+        handshakes = {}
         # OSC functionality:
         sendAddress = '127.0.0.1', 57120
         self.oscClient=OSCClient()
         self.oscClient.connect(sendAddress)
         # Query the type of the link and instantiate a decoder accordingly.
         datalink = pcapObj.datalink()
-        if pcapy.DLT_EN10MB == datalink:
+x        if pcapy.DLT_EN10MB == datalink:
             self.decoder = EthDecoder()
         elif pcapy.DLT_LINUX_SLL == datalink:
             self.decoder = LinuxSLLDecoder()
@@ -59,61 +60,59 @@ class DecoderThread(Thread):
         # Sniff ad infinitum.
         # PacketHandler shall be invoked by pcap for every packet.
         self.pcap.loop(0, self.packetHandler)
-   
+
+    def packetHandler(self, hdr, data):
+        p = self.decoder.decode(data)
+        ip = p.child()
+        tcp = ip.child()
+       
+        return (p,ip,tcp,src,dst)
+            
     def packetHandler(self, hdr, data):
         # Use the ImpactDecoder to turn the rawpacket into a hierarchy
         # of ImpactPacket instances.
         # Display the packet in human-readable form.
-        ethPacket = self.decoder.decode(data)        
-        ipPacket = ethPacket.child()
+        eth = self.decoder.decode(data)        
+        ip = eth.child()
         # TODO: restrict to TCP only port 80 (this would be better done at the pcap level)
         # Setting r"ip proto \tcp" as part of the pcap filter expression
         # suffices, and there shouldn't be any problem combining that with
         # other expressions.
-        if isinstance(ipPacket.child(), impacket.ImpactPacket.TCP):
-        # NOW: whichever direction the src and dst are first found in will = key
-        # BUT: key should really always be formatted from local point of view, how to determine local
-            tcpPacket = ipPacket.child()
-            key = str(ipPacket.get_ip_src()) + '.' + str(tcpPacket.get_th_sport()) + '-' + str(ipPacket.get_ip_dst()) + '.' + str(tcpPacket.get_th_dport())
-            msg = OSCMessage()
-            msg.setAddress('/toSonify')
-            msg.append(key)
-            msg.append(":".join([str(x) for x in ethPacket.get_ether_shost()]))
-            msg.append(ipPacket.get_ip_src())
-            msg.append(tcpPacket.get_th_sport())
-            msg.append(":".join([str(x) for x in ethPacket.get_ether_dhost()]))
-            msg.append(ipPacket.get_ip_dst())
-            msg.append(tcpPacket.get_th_dport())
-            msg.append(ipPacket.get_ip_len())
-            # msg.append(tcpPacket.get_th_seq())
-            # msg.append(tcpPacket.get_th_ack())
-            msg.append(tcpPacket.get_ACK())
-            msg.append(tcpPacket.get_SYN())
-            msg.append(tcpPacket.get_FIN())
-            msg.append(tcpPacket.get_packet())
-            self.oscClient.send(msg)
-        
-        # responses:
-        # if isinstance(ipPacket.child(), impacket.ImpactPacket.TCP):
-        #     tcpData = ipPacket.child().get_packet()
-        #     socket = FakeSocket(tcpData)
-        #     response = HTTPResponse(socket).begin()
-        #     print response
-        #     if response is not None:
-        #         print response.getheaders()
-        #         print response.msg
-        #         print response.status
+        if isinstance(ip.child(), impacket.ImpactPacket.TCP):
+            tcp = ip.child()
+            src = (ip.get_ip_src(), tcp.get_th_sport() )
+            dst = (ip.get_ip_dst(), tcp.get_th_dport() )
+            detectStart(tcp, src, dst):
 
-        # requests:        
-        # request = HTTPRequest(tcpData)
-            # if request.error_code is None:
-                # print request.error_code       # None  (check this first)
-                # print request.command          # "GET"
-                # print request.path             # "/who/ken/trust.html"
-                # print request.request_version  # "HTTP/1.1"
-                # print len(request.headers)     # 3
-                # print request.headers.keys()   # ['accept-charset', 'host', 'accept']
-                # print request.headers['host']  # "cm.bell-labs.com" 
+    def detectStart(tcp, src, dst):
+        # stolen from: https://github.com/larrytheliquid/buffer-overflows/blob/master/project-2/project-2-submission/main.py
+        # Handshake 1
+        if tcp.get_th_flags() == TH_SYN:
+            client_server = (src,dst)
+            self.handshakes[client_server] = { "client_seq" : tcp.get_th_seq() }
+        # Handshake 2
+        elif tcp.get_th_flags() == TH_SYN | TH_ACK:
+            client_server = (dst,src)
+            if client_server in self.handshakes:
+                hs = self.handshakes[client_server]
+                if hs.get("client_seq",None) == tcp.get_th_ack() - 1:
+                    hs["server_seq"] = tcp.get_th_seq()
+        # Handshake 3
+        elif tcp.get_th_flags() == TH_ACK:
+            client_server = (src,dst)
+            if client_server in self.handshakes:
+                hs = self.handshakes[client_server]
+                if hs.get("client_seq",None) == tcp.get_th_seq() - 1 and \
+                   hs.get("server_seq",None) == tcp.get_th_ack() - 1:
+                    self.handshakes.pop(client_server)
+                    sendStart(src, dst)
+
+    def sendStart(src, dst):
+        print "succesful handshake"
+        print (src, dst)
+        
+    def detectEnd(tcpPacket):
+        # if source sends FIN
 
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
