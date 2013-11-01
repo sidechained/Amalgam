@@ -122,9 +122,6 @@ class DecoderThread(Thread):
                     self.handshakes.pop(cs)
                     self.sendStart(src, dst)
 
-    def sendStart(self, src, dst):  
-        print "connection established between:" + str((src, dst))
-
     def detectEnd(self, tcp, src, dst):
         # 02:29:41.824045 IP (tos 0x0, ttl 64, id 62228, offset 0, flags [DF], proto TCP (6), length 40)
         # 10.0.0.69.63661 > 64.4.11.42.80: Flags [F.], cksum 0xfc20 (correct), seq 3708332116, ack 2779445817, win 16384, length 0
@@ -156,8 +153,21 @@ class DecoderThread(Thread):
                     self.endshakes.pop(cs)
                     self.sendEnd(src, dst)
 
-    def sendEnd(self, src, dst):  
+    def sendStart(self, src, dst):
+        print "connection established between:" + str((src, dst))
+        key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
+        msg = OSCMessage()
+        msg.setAddress('/start')
+        msg.append(key)
+        self.oscClient.send(msg)
+
+    def sendEnd(self, src, dst):
         print "connection terminated between:" + str((src, dst))
+        key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
+        msg = OSCMessage()
+        msg.setAddress('/stop')
+        msg.append(key)
+        self.oscClient.send(msg)
  
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
