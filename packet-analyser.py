@@ -39,6 +39,7 @@ from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
 
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
+        self.flowDict = []
         self.handshakes = {}
         self.endshakes = {}
         # OSC functionality:
@@ -77,6 +78,7 @@ class DecoderThread(Thread):
             dst = (ip.get_ip_dst(), tcp.get_th_dport() )
             self.detectStart(tcp, src, dst)
             self.detectEnd(tcp, src, dst)
+            self.passFlow(tcp, src, dst)
 
     def detectStart(self, tcp, src, dst):
         # modified from: https://github.com/larrytheliquid/buffer-overflows/blob/master/project-2/project-2-submission/main.py
@@ -121,6 +123,7 @@ class DecoderThread(Thread):
                     hs = self.handshakes[cs]
                     self.handshakes.pop(cs)
                     self.sendStart(src, dst)
+                    self.flowDict.append((src, dst))
 
     def detectEnd(self, tcp, src, dst):
         # 02:29:41.824045 IP (tos 0x0, ttl 64, id 62228, offset 0, flags [DF], proto TCP (6), length 40)
@@ -152,6 +155,7 @@ class DecoderThread(Thread):
                   es.get("server_ack",None) == tcp.get_th_seq():
                     self.endshakes.pop(cs)
                     self.sendEnd(src, dst)
+                    self.flowDict.remove((src, dst)) # only removes first instance
 
     def sendStart(self, src, dst):
         print "connection established between:" + str((src, dst))
@@ -168,7 +172,36 @@ class DecoderThread(Thread):
         msg.setAddress('/stop')
         msg.append(key)
         self.oscClient.send(msg)
- 
+
+    def passFlow(self, tcp, src, dst):
+        if (src, dst) in self.flowDict:
+            key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
+            cr = 0
+            self.updateFlow(key, tcp, src, dst, cr)
+        if (dst, src) in self.flowDict:
+            key = str(dst[0]) + '.' + str(dst[1]) + '-' + str(src[0]) + '.' + str(src[1])
+            cr = 1
+            self.updateFlow(key, tcp, src, dst, cr)
+            
+    def updateFlow(self, key, tcp, src, dst, cr):
+        self.oscSender('/callResponse', key, cr)
+        self.oscSender('/setSourceIP', key, src[0])
+        self.oscSender('/setSourcePort', key, src[1])       
+        self.oscSender('/setDestIP', key, dst[0])
+        self.oscSender('/setDestPort', key, dst[1])
+        self.oscSender('/setSourceIP', key, tcp.parent().get_ip_len())
+        # self.oscSender('/setSeqNum', key, tcp.get_th_seq())        
+        # self.oscSender('/setAckNum', key, tcp.get_th_ack())
+        self.oscSender('/setData', key, tcp.get_packet())
+
+    def oscSender(self, name, key, parameter):
+        msg = OSCMessage()
+        msg.setAddress(name)
+        msg.append(key)
+        msg.append(parameter)
+        self.oscClient.send(msg)
+        print "sending: " + str(msg) + " to: " + str(self.oscClient)
+
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
         self.rfile = StringIO(request_text)
