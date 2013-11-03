@@ -64,22 +64,15 @@ class DecoderThread(Thread):
         self.pcap.loop(0, self.packetHandler)
             
     def packetHandler(self, hdr, data):
-        # Use the ImpactDecoder to turn the rawpacket into a hierarchy
-        # of ImpactPacket instances.
-        # Display the packet in human-readable form.
+        # Use the ImpactDecoder to turn the rawpacket into a hierarchy of ImpactPacket instances.
         eth = self.decoder.decode(data)        
         ip = eth.child()
-        # TODO: restrict to TCP only port 80 (this would be better done at the pcap level)
-        # Setting r"ip proto \tcp" as part of the pcap filter expression
-        # suffices, and there shouldn't be any problem combining that with
-        # other expressions.
-        if isinstance(ip.child(), impacket.ImpactPacket.TCP):
-            tcp = ip.child()
-            src = (ip.get_ip_src(), tcp.get_th_sport() )
-            dst = (ip.get_ip_dst(), tcp.get_th_dport() )
-            self.detectStart(tcp, src, dst)
-            self.passFlow(tcp, src, dst) # flow should be passed before end
-            self.detectEnd(tcp, src, dst)
+        tcp = ip.child()
+        src = (ip.get_ip_src(), tcp.get_th_sport() )
+        dst = (ip.get_ip_dst(), tcp.get_th_dport() )
+        self.detectStart(tcp, src, dst)
+        self.passFlow(tcp, src, dst) # flow should be passed before end
+        self.detectEnd(tcp, src, dst)
 
     def detectStart(self, tcp, src, dst):
         # modified from: https://github.com/larrytheliquid/buffer-overflows/blob/master/project-2/project-2-submission/main.py
@@ -227,7 +220,7 @@ class FakeSocket(StringIO):
 
 # methods
 
-def main(filter):
+def main():
 
     dev = 'en1'
 
@@ -235,18 +228,11 @@ def main(filter):
     p = open_live(dev, 1500, 0, 100)
 
     # Set the BPF filter. See tcpdump(3).
-    p.setfilter(filter)
+    p.setfilter('tcp port 80') # only capture http packets
 
     print "Listening on %s: net=%s, mask=%s, linktype=%d" % (dev, p.getnet(), p.getmask(), p.datalink())
 
     # Start sniffing thread and finish main thread.
     DecoderThread(p).start()
 
-# Process command-line arguments. Take everything as a BPF filter to pass
-# onto pcap. Default to the empty filter (match all).
-filter = ''
-if len(sys.argv) > 1:
-    filter = ' '.join(sys.argv[1:])
-    print filter
-
-main(filter)
+main()
