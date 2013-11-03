@@ -39,7 +39,7 @@ from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
 
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
-        self.flowDict = []
+        self.streamIndexer = []
         self.handshakes = {}
         self.endshakes = {}
         # OSC functionality:
@@ -122,8 +122,12 @@ class DecoderThread(Thread):
                 if (hs["server_seq"] == tcp.get_th_ack() - 1) & (hs["server_ack"] == tcp.get_th_seq()):
                     hs = self.handshakes[cs]
                     self.handshakes.pop(cs)
+                    if (src,dst) not in self.streamIndexer:
+                        self.streamIndexer.append((src, dst))
+                    else:
+                        print "this should never happen"
                     self.sendStart(src, dst)
-                    self.flowDict.append((src, dst))
+
 
     def detectEnd(self, tcp, src, dst):
         # 02:29:41.824045 IP (tos 0x0, ttl 64, id 62228, offset 0, flags [DF], proto TCP (6), length 40)
@@ -155,50 +159,43 @@ class DecoderThread(Thread):
                   es.get("server_ack",None) == tcp.get_th_seq():
                     self.endshakes.pop(cs)
                     self.sendEnd(src, dst)
-                    self.flowDict.remove((src, dst)) # only removes first instance
+                    # self.streamIndexer.remove((src, dst)) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others
 
     def sendStart(self, src, dst):
-        print "connection established between:" + str((src, dst))
-        key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
-        msg = OSCMessage()
-        msg.setAddress('/start')
-        msg.append(key)
-        self.oscClient.send(msg)
-
+        index = self.streamIndexer.index((src, dst))
+        self.oscSender('/start', [index])
+        
     def sendEnd(self, src, dst):
-        print "connection terminated between:" + str((src, dst))
-        key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
-        msg = OSCMessage()
-        msg.setAddress('/stop')
-        msg.append(key)
-        self.oscClient.send(msg)
-
+        index = self.streamIndexer.index((src, dst))
+        self.oscSender('/stop', [index])
+ 
     def passFlow(self, tcp, src, dst):
-        if (src, dst) in self.flowDict:
-            key = str(src[0]) + '.' + str(src[1]) + '-' + str(dst[0]) + '.' + str(dst[1])
+        if (src, dst) in self.streamIndexer:
+            index = self.streamIndexer.index((src, dst))
             cr = 0
-            self.updateFlow(key, tcp, src, dst, cr)
-        if (dst, src) in self.flowDict:
-            key = str(dst[0]) + '.' + str(dst[1]) + '-' + str(src[0]) + '.' + str(src[1])
+            self.updateFlow(index, tcp, src, dst, cr)
+        if (dst, src) in self.streamIndexer:
+            index = self.streamIndexer.index((dst, src))
             cr = 1
-            self.updateFlow(key, tcp, src, dst, cr)
-            
-    def updateFlow(self, key, tcp, src, dst, cr):
-        self.oscSender('/callResponse', key, cr)
-        self.oscSender('/setSourceIP', key, src[0])
-        self.oscSender('/setSourcePort', key, src[1])       
-        self.oscSender('/setDestIP', key, dst[0])
-        self.oscSender('/setDestPort', key, dst[1])
-        self.oscSender('/setSourceIP', key, tcp.parent().get_ip_len())
-        # self.oscSender('/setSeqNum', key, tcp.get_th_seq())        
-        # self.oscSender('/setAckNum', key, tcp.get_th_ack())
-        self.oscSender('/setData', key, tcp.get_packet())
+            self.updateFlow(index, tcp, src, dst, cr)
 
-    def oscSender(self, name, key, parameter):
+    def updateFlow(self, index, tcp, src, dst, cr):
+        self.oscSender('/callResponse', [index, cr])
+        self.oscSender('/setSourceIP', [index, src[0]])
+        self.oscSender('/setSourcePort', [index, src[1]])       
+        self.oscSender('/setDestIP', [index, dst[0]])
+        self.oscSender('/setDestPort', [index, dst[1]])
+        self.oscSender('/setSourceIP', [index, tcp.parent().get_ip_len()])
+        # self.oscSender('/setSeqNum', [index, tcp.get_th_seq()])        
+        # self.oscSender('/setAckNum', [index, tcp.get_th_ack()])
+        self.oscSender('/setData', [index, tcp.get_packet()])
+        None
+
+    def oscSender(self, name, params):
         msg = OSCMessage()
         msg.setAddress(name)
-        msg.append(key)
-        msg.append(parameter)
+        for param in params:
+            msg.append(param)
         self.oscClient.send(msg)
         print "sending: " + str(msg) + " to: " + str(self.oscClient)
 
