@@ -140,7 +140,7 @@ class DecoderThread(Thread):
         # 02:29:42.002991 IP (tos 0x0, ttl 242, id 43373, offset 0, flags [DF], proto TCP (6), length 40)
         # 64.4.11.42.80 > 10.0.0.69.63661: Flags [F.], cksum 0x3a21 (correct), seq 2779445817, ack 3708332117, win 511, length 0
         # 02:29:42.003103 IP (tos 0x0, ttl 64, id 63350, offset 0, flags [DF], proto TCP (6), length 40)
-        # 10.0.0.69.63661 > 64.4.11.42.80: Flags [.], cksum 0xfc1f (correct), seq 3708332117, ack 2779445818, win 16384, length 0        
+        # 10.0.0.69.63661 > 64.4.11.42.80: Flags [.], cksum 0xfc1f (correct), seq 3708332117, ack 2779445818, win 16384, length 0
         
         if (tcp.get_FIN() == 1) & (tcp.get_ACK() == 1):
             cs = (src,dst)
@@ -162,13 +162,15 @@ class DecoderThread(Thread):
                 es = self.endshakes[cs]
                 if es.get("server_seq",None) == tcp.get_th_ack() - 1 and \
                   es.get("server_ack",None) == tcp.get_th_seq():
-                    self.endshakes.pop(cs)
-                    self.sendEnd(src, dst)
+                  if src[0] in self.peerIndexer: # only send end if start has previously been sent (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why check the whole handshake process before deciding?
+                        self.endshakes.pop(cs)
+                        self.sendEnd(src, dst)
                     # self.streamIndexer.remove((src, dst)) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)
 
     def sendStart(self, src, dst):
         peerIndex = self.peerIndexer.index(src[0])
         streamIndex = self.streamIndexer.index((src, dst))
+        # Q: should these be sent as separate messages?
         self.oscSender('/start', [peerIndex, streamIndex])
         
     def sendEnd(self, src, dst):
@@ -189,15 +191,15 @@ class DecoderThread(Thread):
             self.updateFlow(peerIndex, streamIndex, tcp, src, dst, cr)
 
     def updateFlow(self, peerIndex, streamIndex, tcp, src, dst, cr):
-        #self.oscSender('/callResponse', [peerIndex, streamIndex, cr])
-        #self.oscSender('/setSourceIP', [peerIndex, streamIndex, src[0]])
-        #self.oscSender('/setSourcePort', [peerIndex, streamIndex, src[1]])       
-        #self.oscSender('/setDestIP', [peerIndex, streamIndex, dst[0]])
-        #self.oscSender('/setDestPort', [peerIndex, streamIndex, dst[1]])
-        #self.oscSender('/setSourceIP', [peerIndex, streamIndex, tcp.parent().get_ip_len()])
+        self.oscSender('/callResponse', [peerIndex, streamIndex, cr])
+        self.oscSender('/setSourceIP', [peerIndex, streamIndex, src[0]])
+        self.oscSender('/setSourcePort', [peerIndex, streamIndex, src[1]])       
+        self.oscSender('/setDestIP', [peerIndex, streamIndex, dst[0]])
+        self.oscSender('/setDestPort', [peerIndex, streamIndex, dst[1]])
+        self.oscSender('/setSourceIP', [peerIndex, streamIndex, tcp.parent().get_ip_len()])
         # self.oscSender('/setSeqNum', [peerIndex, streamIndex, tcp.get_th_seq()])        
         # self.oscSender('/setAckNum', [peerIndex, streamIndex, tcp.get_th_ack()])
-        #self.oscSender('/setData', [peerIndex, streamIndex, tcp.get_packet()])
+        self.oscSender('/setData', [peerIndex, streamIndex, tcp.get_packet()])
         None
         
     def oscSender(self, name, params):
