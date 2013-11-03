@@ -78,8 +78,8 @@ class DecoderThread(Thread):
             src = (ip.get_ip_src(), tcp.get_th_sport() )
             dst = (ip.get_ip_dst(), tcp.get_th_dport() )
             self.detectStart(tcp, src, dst)
+            self.passFlow(tcp, src, dst) # flow should be passed before end
             self.detectEnd(tcp, src, dst)
-            self.passFlow(tcp, src, dst)
 
     def detectStart(self, tcp, src, dst):
         # modified from: https://github.com/larrytheliquid/buffer-overflows/blob/master/project-2/project-2-submission/main.py
@@ -162,7 +162,7 @@ class DecoderThread(Thread):
                 es = self.endshakes[cs]
                 if es.get("server_seq",None) == tcp.get_th_ack() - 1 and \
                   es.get("server_ack",None) == tcp.get_th_seq():
-                  if src[0] in self.peerIndexer: # only send end if start has previously been sent (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why check the whole handshake process before deciding?
+                  if src[0] in self.peerIndexer: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why check the whole handshake process before deciding?
                         self.endshakes.pop(cs)
                         self.sendEnd(src, dst)
                     # self.streamIndexer.remove((src, dst)) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)
@@ -192,14 +192,14 @@ class DecoderThread(Thread):
 
     def updateFlow(self, peerIndex, streamIndex, tcp, src, dst, cr):
         self.oscSender('/callResponse', [peerIndex, streamIndex, cr])
-        self.oscSender('/setSourceIP', [peerIndex, streamIndex, src[0]])
-        self.oscSender('/setSourcePort', [peerIndex, streamIndex, src[1]])       
-        self.oscSender('/setDestIP', [peerIndex, streamIndex, dst[0]])
-        self.oscSender('/setDestPort', [peerIndex, streamIndex, dst[1]])
-        self.oscSender('/setSourceIP', [peerIndex, streamIndex, tcp.parent().get_ip_len()])
+        self.oscSender('/sourceIP', [peerIndex, streamIndex, src[0]])
+        self.oscSender('/sourcePort', [peerIndex, streamIndex, src[1]])       
+        self.oscSender('/destIP', [peerIndex, streamIndex, dst[0]])
+        self.oscSender('/destPort', [peerIndex, streamIndex, dst[1]])
+        self.oscSender('/sourceIP', [peerIndex, streamIndex, tcp.parent().get_ip_len()])
         # self.oscSender('/setSeqNum', [peerIndex, streamIndex, tcp.get_th_seq()])        
         # self.oscSender('/setAckNum', [peerIndex, streamIndex, tcp.get_th_ack()])
-        self.oscSender('/setData', [peerIndex, streamIndex, tcp.get_packet()])
+        self.oscSender('/data', [peerIndex, streamIndex, tcp.get_packet()])
         None
         
     def oscSender(self, name, params):
