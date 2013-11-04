@@ -122,16 +122,13 @@ class DecoderThread(Thread):
 
     def startDetected(self, src, dst):
         # source tracking
-        sourceIP = src[0] # src[0] is the ip of the source peer:
+        sourceIP = src[0]
+        streamKey = (src, dst)
         if sourceIP not in self.sourceDict:
             self.addSource(sourceIP)
-            sourceIndex = self.sourceDict[sourceIP]['index']
-            self.oscSender('/addSource', [sourceIndex, sourceIP]) # send src port and dst ip here, for visualisation
         # stream tracking
-        stream = (src,dst)
-        if stream not in self.sourceDict[sourceIP]:
-            self.addStream(sourceIP, stream)
-        self.sendStart(src, dst)
+        if streamKey not in self.sourceDict[sourceIP]['streamDict']:
+            self.addStream(src, dst)
     
     def detectEnd(self, tcp, src, dst):
         # 02:29:41.824045 IP (tos 0x0, ttl 64, id 62228, offset 0, flags [DF], proto TCP (6), length 40)
@@ -167,8 +164,7 @@ class DecoderThread(Thread):
     def endDetected(self, src, dst):
         sourceIP = src[0]
         if sourceIP in self.sourceDict: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why go through the whole handshake process before deciding?
-            self.sendEnd(src, dst)
-            # self.removeStream(sourceIP, stream) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
+            self.removeStream(src, dst) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
 
     def detectHTTPRequest():
         # call only after connection establishment
@@ -185,42 +181,26 @@ class DecoderThread(Thread):
 
     def detectHTTPResponse():
         None
-
-    def sendStart(self, src, dst):
-	sourceIP = src[0]
-	stream = (src, dst)
-        sourceIndex = self.sourceDict[sourceIP]['index']
-        streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
-        # Q: should these be sent as separate messages?
-        self.oscSender('/addStream', [sourceIndex, streamIndex, src[1], dst[0]]) # send src port and dst ip here, for visualisation
-        
-    def sendEnd(self, src, dst):
-	sourceIP = src[0]
-	stream = (src, dst)
-        sourceIndex = self.sourceDict[sourceIP]['index']
-        streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
-        self.oscSender('/removeStream', [sourceIndex, streamIndex])
  
     def passFlow(self, tcp, src, dst):
         # if the source or destination belong to an existing stream, forward data to that stream
         sourceIP = src[0]
-        destination = dst[0]
+        destinationIP = dst[0]
         if sourceIP in self.sourceDict:
-            stream = (src, dst)
-            if stream in self.sourceDict[sourceIP]:
+            streamKey = (src, dst)
+            if streamKey in self.sourceDict[sourceIP]['streamDict']:
                 sourceIndex = self.sourceDict[sourceIP]['index']
-                streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
+                streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
                 cr = 0
                 self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
-        elif destination in self.sourceDict:
-            reversedStream = (dst, src)
-            existingStreamIndexer = self.sourceDict[destination]
-            if reversedStream in existingStreamIndexer:
-                sourceIndex = self.sourceDict[sourceIP]['index']
-                streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
+        elif destinationIP in self.sourceDict:
+            reversedStreamKey = (dst, src)
+            if reversedStreamKey in self.sourceDict[destinationIP]['streamDict']:
+                sourceIndex = self.sourceDict[destinationIP]['index']
+                streamIndex = self.sourceDict[destinationIP]['streamDict'][reversedStreamKey]['index']
                 cr = 1
                 self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
-                
+                                
     def updateFlow(self, sourceIndex, streamIndex, tcp, src, dst, cr):
         self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
         self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
@@ -244,20 +224,36 @@ class DecoderThread(Thread):
     # source and stream management
     
     def addSource(self, sourceIP):
+        # getting length with never work
         index = len(self.sourceDict)
-        self.sourceDict[sourceIP] = { 'index': index, 'streamDict': {} }
+        streamStack = range(100, -1, -1)
+        self.sourceDict[sourceIP] = { 'index': index, 'streamDict': {}, 'streamStack': streamStack }
+        sourceIndex = self.sourceDict[sourceIP]['index']
+        self.oscSender('/addSource', [sourceIndex, sourceIP]) # send src port and dst ip here, for visualisation
 
     def removeSource(self, sourceIP):
         del self.sourceDict[sourceIP]
 
-    def addStream(self, sourceIP, streamKey):
+    def addStream(self, src, dst):
+        sourceIP = src[0]
+        streamKey = (src, dst)
         streamDict = self.sourceDict[sourceIP]['streamDict']
-        index = len(self.sourceDict[sourceIP]['streamDict'])
+        index = self.sourceDict[sourceIP]['streamStack'].pop()
         streamDict[streamKey] = {'index': index }
+        sourceIndex = self.sourceDict[sourceIP]['index']
+        streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        # Q: should these be sent as separate messages?
+        self.oscSender('/addStream', [sourceIndex, streamIndex, src[1], dst[0]]) # send src port and dst ip here, for visualisation
 
-    def removeStream(self, sourceIP, streamKey):
+    def removeStream(self, src, dst):
+        sourceIP = src[0]
+        streamKey = (src, dst)        
+        index = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        self.sourceDict[sourceIP]['streamStack'].append(index) # push
         streamDict = self.sourceDict[sourceIP]['streamDict']
-        del streamDict[streamKey]
+        sourceIndex = self.sourceDict[sourceIP]['index']
+        streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        self.oscSender('/removeStream', [sourceIndex, streamIndex])
        
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
