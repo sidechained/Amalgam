@@ -1,28 +1,30 @@
 #!/usr/bin/python
-# Copyright (c) 2003 CORE Security Technologies
-#
-# This software is provided under under a slightly modified version
-# of the Apache Software License. See the accompanying LICENSE file
-# for more information.
-#
-# $Id: sniff.py 17 2003-10-27 17:36:57Z jkohen $
-#
-# Simple packet sniffer.
-#
-# This packet sniffer uses the pcap library to listen for packets in
-# transit over the specified interface. The returned packages can be
-# filtered according to a BPF filter (see tcpdump(3) for further
-# information on BPF filters).
-#
-# Note that the user might need special permissions to be able to use pcap.
-#
-# Authors:
-#  Maximiliano Caceres <max@coresecurity.com>
-#  Javier Kohen <jkohen@coresecurity.com>
-#
-# Reference for:
-#  pcapy: findalldevs, open_live.
-#  ImpactDecoder.
+
+# OSC API:
+
+# /addSource [sourceIndex] [sourceIP]
+# [remove source will never happen]
+# /addStream [sourceIndex] [streamIndex] [sourcePort] [destIP]
+# /removeStream [sourceIndex] [streamIndex]
+# /startStream [sourceIndex] [streamIndex]
+# /param [sourceIndex] [streamIndex] [param]
+# /stopStream [sourceIndex] [streamIndex]
+
+# addSource('128.9.9.1')
+# removeSource('128.9.9.1')
+# addStream('128.9.9.1', '1234')
+# removeStream('128.9.9.1', '1234')
+# // get source index
+# sourceDict['128.9.9.1']['streamDict']['1234']['index']
+# // get stream index
+# sourceDict['128.9.9.1']['index']
+
+#- when a TCP connection is added
+#-- 1. check if (src) in source data structure
+#--- if not, append to source data structure
+#--- the index of this source in structure is the source index
+#-- 2. check if (stream) is in source data structure at source index
+#--- if not, append to it
 
 import sys
 import string
@@ -39,8 +41,7 @@ from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
 
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
-        self.peerIndexer = []
-        self.streamIndexer = []
+        self.sourceDict = {}
         self.handshakes = {}
         self.endshakes = {}
         # OSC functionality:
@@ -70,6 +71,7 @@ class DecoderThread(Thread):
         tcp = ip.child()
         src = (ip.get_ip_src(), tcp.get_th_sport() )
         dst = (ip.get_ip_dst(), tcp.get_th_dport() )
+        # print tcp.get_packet()
         self.detectStart(tcp, src, dst)
         self.passFlow(tcp, src, dst) # flow should be passed before end
         self.detectEnd(tcp, src, dst)
@@ -116,17 +118,21 @@ class DecoderThread(Thread):
                 if (hs["server_seq"] == tcp.get_th_ack() - 1) & (hs["server_ack"] == tcp.get_th_seq()):
                     hs = self.handshakes[cs]
                     self.handshakes.pop(cs)
-                    # peer tracking, where src[0] is the ip of the source peer:
-                    if src[0] not in self.peerIndexer:
-                        self.peerIndexer.append(src[0])
-                        print self.peerIndexer
-                    # stream tracking
-                    if (src,dst) not in self.streamIndexer:
-                        self.streamIndexer.append((src, dst))
-                    else:
-                        print "this should never happen"
-                    self.sendStart(src, dst)
+                    self.startDetected(src, dst)
 
+    def startDetected(self, src, dst):
+        # source tracking
+        sourceIP = src[0] # src[0] is the ip of the source peer:
+        if sourceIP not in self.sourceDict:
+            self.addSource(sourceIP)
+            sourceIndex = self.sourceDict[sourceIP]['index']
+            self.oscSender('/addSource', [sourceIndex, sourceIP]) # send src port and dst ip here, for visualisation
+        # stream tracking
+        stream = (src,dst)
+        if stream not in self.sourceDict[sourceIP]:
+            self.addStream(sourceIP, stream)
+        self.sendStart(src, dst)
+    
     def detectEnd(self, tcp, src, dst):
         # 02:29:41.824045 IP (tos 0x0, ttl 64, id 62228, offset 0, flags [DF], proto TCP (6), length 40)
         # 10.0.0.69.63661 > 64.4.11.42.80: Flags [F.], cksum 0xfc20 (correct), seq 3708332116, ack 2779445817, win 16384, length 0
@@ -155,44 +161,76 @@ class DecoderThread(Thread):
                 es = self.endshakes[cs]
                 if es.get("server_seq",None) == tcp.get_th_ack() - 1 and \
                   es.get("server_ack",None) == tcp.get_th_seq():
-                  if src[0] in self.peerIndexer: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why check the whole handshake process before deciding?
-                        self.endshakes.pop(cs)
-                        self.sendEnd(src, dst)
-                    # self.streamIndexer.remove((src, dst)) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)
+                    self.endshakes.pop(cs)
+                    self.endDetected(src, dst)
+
+    def endDetected(self, src, dst):
+        sourceIP = src[0]
+        if sourceIP in self.sourceDict: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why go through the whole handshake process before deciding?
+            self.sendEnd(src, dst)
+            # self.removeStream(sourceIP, stream) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
+
+    def detectHTTPRequest():
+        # call only after connection establishment
+        # looks for a packet:
+        # -with a starting sequence number that matches the second message in the 3 way handshake
+        # -with an ACK number that matches the ack of the 3rd message in the 3 way handshake
+        # if found, parse the header and send relevant fields SuperCollider
+        sourceIP = src[0]
+        if sourceIP in self.sourceDict: # needed?
+            stream = (src,dst)
+            if stream in self.sourceDict[sourceIP]: # -from source to dest
+                if (tcp.get_PUSH() == 1) & (tcp.get_ACK() == 1): # -with PUSH and ACK flags set
+                    None
+
+    def detectHTTPResponse():
+        None
 
     def sendStart(self, src, dst):
-        peerIndex = self.peerIndexer.index(src[0])
-        streamIndex = self.streamIndexer.index((src, dst))
+	sourceIP = src[0]
+	stream = (src, dst)
+        sourceIndex = self.sourceDict[sourceIP]['index']
+        streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
         # Q: should these be sent as separate messages?
-        self.oscSender('/start', [peerIndex, streamIndex])
+        self.oscSender('/addStream', [sourceIndex, streamIndex, src[1], dst[0]]) # send src port and dst ip here, for visualisation
         
     def sendEnd(self, src, dst):
-        peerIndex = self.peerIndexer.index(src[0])
-        streamIndex = self.streamIndexer.index((src, dst))
-        self.oscSender('/stop', [peerIndex, streamIndex])
+	sourceIP = src[0]
+	stream = (src, dst)
+        sourceIndex = self.sourceDict[sourceIP]['index']
+        streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
+        self.oscSender('/removeStream', [sourceIndex, streamIndex])
  
     def passFlow(self, tcp, src, dst):
-        if (src, dst) in self.streamIndexer:
-            peerIndex = self.peerIndexer.index(src[0])
-            streamIndex = self.streamIndexer.index((src, dst))
-            cr = 0
-            self.updateFlow(peerIndex, streamIndex, tcp, src, dst, cr)
-        if (dst, src) in self.streamIndexer:
-            peerIndex = self.peerIndexer.index(dst[0])
-            streamIndex = self.streamIndexer.index((dst, src))
-            cr = 1
-            self.updateFlow(peerIndex, streamIndex, tcp, src, dst, cr)
-
-    def updateFlow(self, peerIndex, streamIndex, tcp, src, dst, cr):
-        self.oscSender('/callResponse', [peerIndex, streamIndex, cr])
-        self.oscSender('/sourceIP', [peerIndex, streamIndex, src[0]])
-        self.oscSender('/sourcePort', [peerIndex, streamIndex, src[1]])       
-        self.oscSender('/destIP', [peerIndex, streamIndex, dst[0]])
-        self.oscSender('/destPort', [peerIndex, streamIndex, dst[1]])
-        self.oscSender('/sourceIP', [peerIndex, streamIndex, tcp.parent().get_ip_len()])
-        # self.oscSender('/setSeqNum', [peerIndex, streamIndex, tcp.get_th_seq()])        
-        # self.oscSender('/setAckNum', [peerIndex, streamIndex, tcp.get_th_ack()])
-        self.oscSender('/data', [peerIndex, streamIndex, tcp.get_packet()])
+        # if the source or destination belong to an existing stream, forward data to that stream
+        sourceIP = src[0]
+        destination = dst[0]
+        if sourceIP in self.sourceDict:
+            stream = (src, dst)
+            if stream in self.sourceDict[sourceIP]:
+                sourceIndex = self.sourceDict[sourceIP]['index']
+                streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
+                cr = 0
+                self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+        elif destination in self.sourceDict:
+            reversedStream = (dst, src)
+            existingStreamIndexer = self.sourceDict[destination]
+            if reversedStream in existingStreamIndexer:
+                sourceIndex = self.sourceDict[sourceIP]['index']
+                streamIndex = self.sourceDict[sourceIP]['streamDict'][stream]['index']
+                cr = 1
+                self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+                
+    def updateFlow(self, sourceIndex, streamIndex, tcp, src, dst, cr):
+        self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
+        self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
+        self.oscSender('/sourcePort', [sourceIndex, streamIndex, src[1]])       
+        self.oscSender('/destIP', [sourceIndex, streamIndex, dst[0]])
+        self.oscSender('/destPort', [sourceIndex, streamIndex, dst[1]])
+        self.oscSender('/sourceIP', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
+        # self.oscSender('/setSeqNum', [sourceIndex, streamIndex, tcp.get_th_seq()])        
+        # self.oscSender('/setAckNum', [sourceIndex, streamIndex, tcp.get_th_ack()])
+        self.oscSender('/data', [sourceIndex, streamIndex, tcp.get_packet()])
         None
         
     def oscSender(self, name, params):
@@ -203,6 +241,24 @@ class DecoderThread(Thread):
         self.oscClient.send(msg)
         print "sending: " + str(msg) + " to: " + str(self.oscClient)
 
+    # source and stream management
+    
+    def addSource(self, sourceIP):
+        index = len(self.sourceDict)
+        self.sourceDict[sourceIP] = { 'index': index, 'streamDict': {} }
+
+    def removeSource(self, sourceIP):
+        del self.sourceDict[sourceIP]
+
+    def addStream(self, sourceIP, streamKey):
+        streamDict = self.sourceDict[sourceIP]['streamDict']
+        index = len(self.sourceDict[sourceIP]['streamDict'])
+        streamDict[streamKey] = {'index': index }
+
+    def removeStream(self, sourceIP, streamKey):
+        streamDict = self.sourceDict[sourceIP]['streamDict']
+        del streamDict[streamKey]
+       
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
         self.rfile = StringIO(request_text)
