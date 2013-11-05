@@ -214,11 +214,13 @@ class DecoderThread(Thread):
                     # print request.headers['host']  # "cm.bell-labs.com" 
 
         # responses:
-        #socket = FakeSocket(packetString)
-        #response = HTTPResponse(socket)
-        #print response
-        #response.begin()
-        #print response.getHeaders()
+        # if packetString.find('\r\n\r\n') >= 0: # first, detect that the packet is a response packet, then parse it using HTTP response classes
+        # print packetString
+        # socket = FakeSocket(packetString)
+        # response = HTTPResponse(socket)
+        # print response
+        # response.begin()
+        # print response.getHeaders()
  
     def passFlow(self, tcp, src, dst):
         # if the source or destination belong to an existing stream, forward data to that stream
@@ -246,12 +248,12 @@ class DecoderThread(Thread):
         # problem here: destination port is also mapped to source port
         mappedSourcePort = scale(sourcePort, (49152, 65535), (0.0, 1.0)) # IANA range to 0. to 1.
         # sending:
-        #self.oscFilter(sourceIP, '/callResponse', [sourceIndex, streamIndex, cr])
-        #self.oscFilter(sourceIP, '/sourceIP', [sourceIndex, streamIndex, src[0]])
-        #self.oscFilter(sourceIP, '/sourcePort', [sourceIndex, streamIndex, mappedSourcePort])       
-        #self.oscFilter(sourceIP, '/destIP', [sourceIndex, streamIndex, dst[0]])
-        #self.oscFilter(sourceIP, '/destPort', [sourceIndex, streamIndex, dst[1]])
-        #self.oscFilter(sourceIP, '/packetLength', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
+        self.oscFilter(sourceIP, '/sourceIP', [sourceIndex, streamIndex, src[0]])
+        self.oscFilter(sourceIP, '/sourcePort', [sourceIndex, streamIndex, mappedSourcePort])       
+        self.oscFilter(sourceIP, '/destIP', [sourceIndex, streamIndex, dst[0]])
+        self.oscFilter(sourceIP, '/destPort', [sourceIndex, streamIndex, dst[1]])
+        self.oscFilter(sourceIP, '/response', [sourceIndex, streamIndex, cr])
+        self.oscFilter(sourceIP, '/packetLength', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
         #self.oscFilter(sourceIP, '/setSeqNum', [sourceIndex, streamIndex, tcp.get_th_seq()])        
         #self.oscFilter(sourceIP, '/setAckNum', [sourceIndex, streamIndex, tcp.get_th_ack()])
         #self.oscFilter(sourceIP, '/data', [sourceIndex, streamIndex, tcp.get_bytes()])
@@ -314,9 +316,9 @@ class DecoderThread(Thread):
 def initOSCServer():
     global st
     global server
-    print "\nStarting OSCServer.."
     receiveAddress = '127.0.0.1', 8834
     server = OSCServer(receiveAddress)
+    print str(server)
     server.addDefaultHandlers() # registers 'default' handler (for unmatched messages + more)
     server.addMsgHandler("/setFilter", setSourceFilter)
     # print server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
