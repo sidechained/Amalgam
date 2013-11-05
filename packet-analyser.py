@@ -32,13 +32,28 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from httplib import HTTPResponse
 from StringIO import StringIO
 from threading import Thread
-from OSC import OSCClient, OSCMessage
+from OSC import OSCClient, OSCMessage, OSCServer
 
 import pcapy
 from pcapy import findalldevs, open_live
 import impacket
 from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
+    
+class HTTPRequest(BaseHTTPRequestHandler):
+    def __init__(self, request_text):
+        self.rfile = StringIO(request_text)
+        self.raw_requestline = self.rfile.readline()
+        self.error_code = self.error_message = None
+        self.parse_request()
 
+    def send_error(self, code, message):
+        self.error_code = code
+        self.error_message = message
+
+class FakeSocket(StringIO):
+    def makefile(self, *args, **kw):
+        return self
+    
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
         self.sourceDict = {}
@@ -73,6 +88,7 @@ class DecoderThread(Thread):
         dst = (ip.get_ip_dst(), tcp.get_th_dport() )
         # print tcp.get_packet()
         self.detectStart(tcp, src, dst)
+        self.detectAndParseHTTP(tcp, src, dst)
         self.passFlow(tcp, src, dst) # flow should be passed before end
         self.detectEnd(tcp, src, dst)
 
@@ -165,6 +181,29 @@ class DecoderThread(Thread):
         sourceIP = src[0]
         if sourceIP in self.sourceDict: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why go through the whole handshake process before deciding?
             self.removeStream(src, dst) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
+            
+    def detectAndParseHTTP(self, tcp, src, dst):
+        packetString = tcp.get_data_as_string()
+        # print packetString
+        #request = HTTPRequest(packetString)
+        #if request.error_code is None:
+            # if request.command is "GET": # and request.request_version is "HTTP/1.1" ?
+            # print request.error_code       # None  (check this first)
+            # if request.command is "GET":
+            # print type(request.command)
+            # print "'" + request.command + "'"  # "GET"
+                # print request.path             # "/who/ken/trust.html"
+                # print request.request_version  # "HTTP/1.1"
+                #print len(request.headers)     # 3
+                #print request.headers.keys()   # ['accept-charset', 'host', 'accept']
+                #print request.headers['host']  # "cm.bell-labs.com" 
+
+        # responses:
+        #socket = FakeSocket(packetString)
+        #response = HTTPResponse(socket)
+        #print response
+        #response.begin()
+        #print response.getHeaders()
 
         # def detectHTTPRequest():
         # call only after connection establishment
@@ -192,7 +231,10 @@ class DecoderThread(Thread):
                 sourceIndex = self.sourceDict[sourceIP]['index']
                 streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
                 cr = 0
-                self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+                # all or none first
+                if self.sourceDict[sourceIP]['filterType'] is "all":
+                    self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+                
         elif destinationIP in self.sourceDict:
             reversedStreamKey = (dst, src)
             if reversedStreamKey in self.sourceDict[destinationIP]['streamDict']:
@@ -200,7 +242,7 @@ class DecoderThread(Thread):
                 streamIndex = self.sourceDict[destinationIP]['streamDict'][reversedStreamKey]['index']
                 cr = 1
                 self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
-                                
+
     def updateFlow(self, sourceIndex, streamIndex, tcp, src, dst, cr):
         #self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
         #self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
@@ -254,21 +296,22 @@ class DecoderThread(Thread):
         sourceIndex = self.sourceDict[sourceIP]['index']
         streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
         self.oscSender('/removeStream', [sourceIndex, streamIndex])
-       
-class HTTPRequest(BaseHTTPRequestHandler):
-    def __init__(self, request_text):
-        self.rfile = StringIO(request_text)
-        self.raw_requestline = self.rfile.readline()
-        self.error_code = self.error_message = None
-        self.parse_request()
+    
+def initOSCServer():
+    global st
+    print "\nStarting OSCServer.."
+    receiveAddress = '127.0.0.1', 8810
+    server = OSCServer(receiveAddress)
+    server.addDefaultHandlers() # registers 'default' handler (for unmatched messages + more)
+    server.addMsgHandler("/setFilter", setSourceFilter)
+    st = Thread( target = server.serve_forever )
+    st.start()
 
-    def send_error(self, code, message):
-        self.error_code = code
-        self.error_message = message
-
-class FakeSocket(StringIO):
-    def makefile(self, *args, **kw):
-        return self
+def setSourceFilter(addr, tags, msg, source):
+    sourceIndex = msg[0]
+    filterType = msg[1]
+    # search sourceDict for 
+    self.sourceDict[sourceIP]['filterType']    
 
 # methods
 
@@ -276,6 +319,9 @@ def main():
 
     dev = 'en1'
 
+    # start OSC server (to receive filter requests)
+    initOSCServer()
+    
     # Open interface for catpuring.
     p = open_live(dev, 1500, 0, 100)
 
