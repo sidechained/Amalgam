@@ -166,21 +166,21 @@ class DecoderThread(Thread):
         if sourceIP in self.sourceDict: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why go through the whole handshake process before deciding?
             self.removeStream(src, dst) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
 
-    def detectHTTPRequest():
+        # def detectHTTPRequest():
         # call only after connection establishment
         # looks for a packet:
         # -with a starting sequence number that matches the second message in the 3 way handshake
         # -with an ACK number that matches the ack of the 3rd message in the 3 way handshake
         # if found, parse the header and send relevant fields SuperCollider
-        sourceIP = src[0]
-        if sourceIP in self.sourceDict: # needed?
-            stream = (src,dst)
-            if stream in self.sourceDict[sourceIP]: # -from source to dest
-                if (tcp.get_PUSH() == 1) & (tcp.get_ACK() == 1): # -with PUSH and ACK flags set
-                    None
+        # sourceIP = src[0]
+        # if sourceIP in self.sourceDict: # needed?
+        # stream = (src,dst)
+        # if stream in self.sourceDict[sourceIP]: # -from source to dest
+        # if (tcp.get_PUSH() == 1) & (tcp.get_ACK() == 1): # -with PUSH and ACK flags set
+        # None
 
-    def detectHTTPResponse():
-        None
+        # def detectHTTPResponse():
+        # None
  
     def passFlow(self, tcp, src, dst):
         # if the source or destination belong to an existing stream, forward data to that stream
@@ -202,15 +202,15 @@ class DecoderThread(Thread):
                 self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
                                 
     def updateFlow(self, sourceIndex, streamIndex, tcp, src, dst, cr):
-        self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
-        self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
-        self.oscSender('/sourcePort', [sourceIndex, streamIndex, src[1]])       
-        self.oscSender('/destIP', [sourceIndex, streamIndex, dst[0]])
-        self.oscSender('/destPort', [sourceIndex, streamIndex, dst[1]])
-        self.oscSender('/sourceIP', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
+        #self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
+        #self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
+        #self.oscSender('/sourcePort', [sourceIndex, streamIndex, src[1]])       
+        #self.oscSender('/destIP', [sourceIndex, streamIndex, dst[0]])
+        #self.oscSender('/destPort', [sourceIndex, streamIndex, dst[1]])
+        #self.oscSender('/packetLength', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
         # self.oscSender('/setSeqNum', [sourceIndex, streamIndex, tcp.get_th_seq()])        
         # self.oscSender('/setAckNum', [sourceIndex, streamIndex, tcp.get_th_ack()])
-        self.oscSender('/data', [sourceIndex, streamIndex, tcp.get_packet()])
+        #self.oscSender('/data', [sourceIndex, streamIndex, tcp.get_bytes()])
         None
         
     def oscSender(self, name, params):
