@@ -28,6 +28,8 @@
 
 import sys
 import string
+import socket
+import time
 from BaseHTTPServer import BaseHTTPRequestHandler
 from httplib import HTTPResponse
 from StringIO import StringIO
@@ -38,7 +40,12 @@ import pcapy
 from pcapy import findalldevs, open_live
 import impacket
 from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
-    
+
+# global vars
+sourceDict = {}
+
+# classes
+
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
         self.rfile = StringIO(request_text)
@@ -56,13 +63,14 @@ class FakeSocket(StringIO):
     
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
-        self.sourceDict = {}
         self.handshakes = {}
         self.endshakes = {}
         # OSC functionality:
         sendAddress = '127.0.0.1', 57120
         self.oscClient=OSCClient()
         self.oscClient.connect(sendAddress)
+        # initialise supercollider
+        self.oscSender('/init', [1])
         # Query the type of the link and instantiate a decoder accordingly.
         datalink = pcapObj.datalink()
         if pcapy.DLT_EN10MB == datalink:
@@ -140,10 +148,10 @@ class DecoderThread(Thread):
         # source tracking
         sourceIP = src[0]
         streamKey = (src, dst)
-        if sourceIP not in self.sourceDict:
+        if sourceIP not in sourceDict:
             self.addSource(sourceIP)
         # stream tracking
-        if streamKey not in self.sourceDict[sourceIP]['streamDict']:
+        if streamKey not in sourceDict[sourceIP]['streamDict']:
             self.addStream(src, dst)
     
     def detectEnd(self, tcp, src, dst):
@@ -179,24 +187,31 @@ class DecoderThread(Thread):
 
     def endDetected(self, src, dst):
         sourceIP = src[0]
-        if sourceIP in self.sourceDict: # only acknowledge termination if establishment has previously been acknowledged for this stream (prevent errors if start sniffing part way through a flow) - should really be done earlier in the code, why go through the whole handshake process before deciding?
-            self.removeStream(src, dst) # never remove, causes stream to get mixed up, as when one stream ends it is removed and the index changes for all others (similar applies for peers, we don't know if a peer has really left or not)        
+        if sourceIP in sourceDict:
+            # only acknowledge termination if establishment has previously been acknowledged for this stream
+            # (prevent errors if start sniffing part way through a flow)
+            # should really be done earlier in the code, why go through the whole handshake process before deciding?
+            self.removeStream(src, dst)
+            # never remove, causes stream to get mixed up
+            # when one stream ends it is removed and the index changes for all others
+            # (similar applies for peers, we don't know if a peer has really left or not)        
             
     def detectAndParseHTTP(self, tcp, src, dst):
         packetString = tcp.get_data_as_string()
-        # print packetString
-        #request = HTTPRequest(packetString)
-        #if request.error_code is None:
-            # if request.command is "GET": # and request.request_version is "HTTP/1.1" ?
-            # print request.error_code       # None  (check this first)
-            # if request.command is "GET":
-            # print type(request.command)
-            # print "'" + request.command + "'"  # "GET"
-                # print request.path             # "/who/ken/trust.html"
-                # print request.request_version  # "HTTP/1.1"
-                #print len(request.headers)     # 3
-                #print request.headers.keys()   # ['accept-charset', 'host', 'accept']
-                #print request.headers['host']  # "cm.bell-labs.com" 
+
+        # requests:
+        request = HTTPRequest(packetString)
+        if request.error_code is None:
+            if request.command == 'GET':
+                if request.request_version == 'HTTP/1.1':                    
+                    sourceIP = src[0]
+                    sourceIndex = sourceDict[sourceIP]['index']
+                    streamKey = (src, dst)
+                    streamIndex = sourceDict[sourceIP]['streamDict'][streamKey]['index']
+                    self.oscFilter(sourceIP, '/env', [sourceIndex, streamIndex, 1]) # start an envelope
+                    # print len(request.headers)     # 3
+                    # print request.headers.keys()   # ['accept-charset', 'host', 'accept']
+                    # print request.headers['host']  # "cm.bell-labs.com" 
 
         # responses:
         #socket = FakeSocket(packetString)
@@ -204,57 +219,52 @@ class DecoderThread(Thread):
         #print response
         #response.begin()
         #print response.getHeaders()
-
-        # def detectHTTPRequest():
-        # call only after connection establishment
-        # looks for a packet:
-        # -with a starting sequence number that matches the second message in the 3 way handshake
-        # -with an ACK number that matches the ack of the 3rd message in the 3 way handshake
-        # if found, parse the header and send relevant fields SuperCollider
-        # sourceIP = src[0]
-        # if sourceIP in self.sourceDict: # needed?
-        # stream = (src,dst)
-        # if stream in self.sourceDict[sourceIP]: # -from source to dest
-        # if (tcp.get_PUSH() == 1) & (tcp.get_ACK() == 1): # -with PUSH and ACK flags set
-        # None
-
-        # def detectHTTPResponse():
-        # None
  
     def passFlow(self, tcp, src, dst):
         # if the source or destination belong to an existing stream, forward data to that stream
         sourceIP = src[0]
         destinationIP = dst[0]
-        if sourceIP in self.sourceDict:
+        if sourceIP in sourceDict:
             streamKey = (src, dst)
-            if streamKey in self.sourceDict[sourceIP]['streamDict']:
-                sourceIndex = self.sourceDict[sourceIP]['index']
-                streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
+            if streamKey in sourceDict[sourceIP]['streamDict']:
+                sourceIndex = sourceDict[sourceIP]['index']
+                streamIndex = sourceDict[sourceIP]['streamDict'][streamKey]['index']
                 cr = 0
-                # all or none first
-                if self.sourceDict[sourceIP]['filterType'] is "all":
-                    self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+                self.updateFlow(sourceIP, sourceIndex, streamIndex, tcp, src, dst, cr)
                 
-        elif destinationIP in self.sourceDict:
+        elif destinationIP in sourceDict:
             reversedStreamKey = (dst, src)
-            if reversedStreamKey in self.sourceDict[destinationIP]['streamDict']:
-                sourceIndex = self.sourceDict[destinationIP]['index']
-                streamIndex = self.sourceDict[destinationIP]['streamDict'][reversedStreamKey]['index']
+            if reversedStreamKey in sourceDict[destinationIP]['streamDict']:
+                destinationIndex = sourceDict[destinationIP]['index']
+                streamIndex = sourceDict[destinationIP]['streamDict'][reversedStreamKey]['index']
                 cr = 1
-                self.updateFlow(sourceIndex, streamIndex, tcp, src, dst, cr)
+                self.updateFlow(destinationIP, destinationIndex, streamIndex, tcp, src, dst, cr)
+                        
+    def updateFlow(self, sourceIP, sourceIndex, streamIndex, tcp, src, dst, cr):
+        # mapping:
+        sourcePort = src[1]
+        # problem here: destination port is also mapped to source port
+        mappedSourcePort = scale(sourcePort, (49152, 65535), (0.0, 1.0)) # IANA range to 0. to 1.
+        # sending:
+        #self.oscFilter(sourceIP, '/callResponse', [sourceIndex, streamIndex, cr])
+        #self.oscFilter(sourceIP, '/sourceIP', [sourceIndex, streamIndex, src[0]])
+        #self.oscFilter(sourceIP, '/sourcePort', [sourceIndex, streamIndex, mappedSourcePort])       
+        #self.oscFilter(sourceIP, '/destIP', [sourceIndex, streamIndex, dst[0]])
+        #self.oscFilter(sourceIP, '/destPort', [sourceIndex, streamIndex, dst[1]])
+        #self.oscFilter(sourceIP, '/packetLength', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
+        #self.oscFilter(sourceIP, '/setSeqNum', [sourceIndex, streamIndex, tcp.get_th_seq()])        
+        #self.oscFilter(sourceIP, '/setAckNum', [sourceIndex, streamIndex, tcp.get_th_ack()])
+        #self.oscFilter(sourceIP, '/data', [sourceIndex, streamIndex, tcp.get_bytes()])
 
-    def updateFlow(self, sourceIndex, streamIndex, tcp, src, dst, cr):
-        #self.oscSender('/callResponse', [sourceIndex, streamIndex, cr])
-        #self.oscSender('/sourceIP', [sourceIndex, streamIndex, src[0]])
-        #self.oscSender('/sourcePort', [sourceIndex, streamIndex, src[1]])       
-        #self.oscSender('/destIP', [sourceIndex, streamIndex, dst[0]])
-        #self.oscSender('/destPort', [sourceIndex, streamIndex, dst[1]])
-        #self.oscSender('/packetLength', [sourceIndex, streamIndex, tcp.parent().get_ip_len()])
-        # self.oscSender('/setSeqNum', [sourceIndex, streamIndex, tcp.get_th_seq()])        
-        # self.oscSender('/setAckNum', [sourceIndex, streamIndex, tcp.get_th_ack()])
-        #self.oscSender('/data', [sourceIndex, streamIndex, tcp.get_bytes()])
-        None
-        
+    def oscFilter(self, sourceIP, name, params):
+        # isolate particular players or streams
+        if sourceDict[sourceIP]['filterType'] is 'all':
+            self.oscSender(name, params)
+        elif sourceDict[sourceIP]['filterType'] is 'one':
+            noOfStreams = len(sourceDict[sourceIP]['streamDict'])
+            if noOfStreams is 1:
+                self.oscSender(name, params)
+
     def oscSender(self, name, params):
         msg = OSCMessage()
         msg.setAddress(name)
@@ -267,56 +277,68 @@ class DecoderThread(Thread):
     
     def addSource(self, sourceIP):
         # getting length with never work
-        index = len(self.sourceDict)
+        index = len(sourceDict)
         streamStack = range(100, -1, -1)
-        self.sourceDict[sourceIP] = { 'index': index, 'streamDict': {}, 'streamStack': streamStack }
-        sourceIndex = self.sourceDict[sourceIP]['index']
+        sourceDict[sourceIP] = { 'index': index, 'streamDict': {}, 'streamStack': streamStack, 'filterType': 'one' } # init filtertype here for now
+        sourceIndex = sourceDict[sourceIP]['index']
         self.oscSender('/addSource', [sourceIndex, sourceIP]) # send src port and dst ip here, for visualisation
 
     def removeSource(self, sourceIP):
-        del self.sourceDict[sourceIP]
+        del sourceDict[sourceIP]
 
     def addStream(self, src, dst):
         sourceIP = src[0]
         streamKey = (src, dst)
-        streamDict = self.sourceDict[sourceIP]['streamDict']
-        index = self.sourceDict[sourceIP]['streamStack'].pop()
+        streamDict = sourceDict[sourceIP]['streamDict']
+        index = sourceDict[sourceIP]['streamStack'].pop()
         streamDict[streamKey] = {'index': index }
-        sourceIndex = self.sourceDict[sourceIP]['index']
-        streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        sourceIndex = sourceDict[sourceIP]['index']
+        streamIndex = sourceDict[sourceIP]['streamDict'][streamKey]['index']
         # Q: should these be sent as separate messages?
-        self.oscSender('/addStream', [sourceIndex, streamIndex, src[1], dst[0]]) # send src port and dst ip here, for visualisation
+        self.oscSender('/addStream', [sourceIndex, streamIndex, src[1], dst[0]]) # send src port and dst ip here, for visualisation (don't filter)
+        self.oscFilter(sourceIP, '/env', [sourceIndex, streamIndex, 0.75]) # start an envelope
 
     def removeStream(self, src, dst):
         sourceIP = src[0]
         streamKey = (src, dst)        
-        index = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
-        self.sourceDict[sourceIP]['streamStack'].append(index) # push
-        streamDict = self.sourceDict[sourceIP]['streamDict']
-        sourceIndex = self.sourceDict[sourceIP]['index']
-        streamIndex = self.sourceDict[sourceIP]['streamDict'][streamKey]['index']
-        self.oscSender('/removeStream', [sourceIndex, streamIndex])
-    
+        index = sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        sourceDict[sourceIP]['streamStack'].append(index) # push
+        streamDict = sourceDict[sourceIP]['streamDict']
+        sourceIndex = sourceDict[sourceIP]['index']
+        streamIndex = sourceDict[sourceIP]['streamDict'][streamKey]['index']
+        self.oscFilter(sourceIP, '/env', [sourceIndex, streamIndex, 0]) # stop and envelope
+        self.oscSender('/removeStream', [sourceIndex, streamIndex]) # don't filter
+
+# global functions 
+        
 def initOSCServer():
     global st
+    global server
     print "\nStarting OSCServer.."
-    receiveAddress = '127.0.0.1', 8810
+    receiveAddress = '127.0.0.1', 8834
     server = OSCServer(receiveAddress)
     server.addDefaultHandlers() # registers 'default' handler (for unmatched messages + more)
     server.addMsgHandler("/setFilter", setSourceFilter)
+    # print server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     st = Thread( target = server.serve_forever )
     st.start()
 
 def setSourceFilter(addr, tags, msg, source):
-    sourceIndex = msg[0]
+    print msg
+    sourceIP = msg[0]
     filterType = msg[1]
-    # search sourceDict for 
-    self.sourceDict[sourceIP]['filterType']    
+    sourceDict[sourceIP]['filterType'] = filterType  
 
+def scale(val, src, dst):
+    """
+    Scale the given value from the scale of src to the scale of dst.
+    """
+    return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
+    
 # methods
 
 def main():
-
+    
     dev = 'en1'
 
     # start OSC server (to receive filter requests)
@@ -333,4 +355,15 @@ def main():
     # Start sniffing thread and finish main thread.
     DecoderThread(p).start()
 
+    try : 
+        while 1 : 
+            time.sleep(1) 
+
+    except KeyboardInterrupt :
+        print "\nClosing OSCServer."
+        server.close()
+        print "Waiting for Server-thread to finish"
+        # st.join() ##!!!
+        print "Done"
+    
 main()
