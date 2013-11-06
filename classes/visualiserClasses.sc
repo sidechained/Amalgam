@@ -11,12 +11,13 @@ TCPSourceStreamGUI {
 		this.initOSCFuncs;
 	}
 
+
 	remoteInit {
 		var sourceRows;
 		sourceRows = [nil];
-		pythonAddr = NetAddr("localhost", 8834);
-		mainView = View(nil, Rect(Window.screenBounds.width, Window.screenBounds.height, 300, 200)).front.alwaysOnTop_(true);
-		mainView.layout_(VLayout(*sourceRows));
+		pythonAddr = NetAddr("localhost", 8489);
+		mainView = View(nil, Rect(Window.screenBounds.width, Window.screenBounds.height, 800, 200)).front.alwaysOnTop_(true);
+		mainView.layout_(VLayout(*sourceRows).margins_(0).spacing_(0));
 	}
 
 	addSourceRow {arg sourceIndex, sourceIP;
@@ -28,7 +29,8 @@ TCPSourceStreamGUI {
 			["One", Color.black, Color.green(alpha:0.2)],
 			["All", Color.black, Color.blue(alpha:0.2)]
 		])
-		.action_({arg butt; this.sendValueToPythonScript(sourceIP, butt.value)});
+		.action_({arg butt; this.sendValueToPythonScript(sourceIP, butt.value)})
+		.doAction;
 		filterView = View().layout_(HLayout(*[sourceLabel, sourceFilterButton]));
 		streamView = View().layout_(VLayout(streamRows)).background_(Color.red(alpha: 0.1));
 		sourceRow = View().layout_(VLayout(*[filterView,streamView]).spacing_(2).margins_(0)).background_(Color.white);
@@ -42,12 +44,11 @@ TCPSourceStreamGUI {
 	addStreamRow {arg sourceIndex, streamIndex, sourcePort, destinationIP;
 		// destination port is implied as port 80 i.e. http
 		var streamView, streamRow;
-		streamView = View().layout_(HLayout(*[nil]).spacing_(1).margins_(0));
+		streamView = View().layout_(HLayout(*[nil]).spacing_(1).margins_(0)).background_(Color.white);
 		streamRow = View().layout_(HLayout(*[
-			StaticText().string_(sourcePort),
-			StaticText().string_(destinationIP,
-				streamView
-			)
+			StaticText().string_(sourcePort).fixedWidth_(100),
+			StaticText().string_(destinationIP).fixedWidth_(100),
+			streamView
 		]).margins_(0).spacing_(0));
 		mainView.children[sourceIndex].children[1].layout.insert(streamRow, streamIndex);
 	}
@@ -59,16 +60,21 @@ TCPSourceStreamGUI {
 
 	addPacket {arg sourceIndex, streamIndex, packetLength;
 		var streamView;
-		streamView = mainView.children[sourceIndex].children[1][streamIndex].children[2];
+		streamView = mainView.children[sourceIndex].children[1].layout.parent.children[streamIndex].layout.parent.children[2];
 		streamView.layout.add(
-			View().fixedSize_(
-				Size(packetLength/100, 20)
-			).background_(packetColor)
+			View().fixedWidth_(packetLength/500).background_(packetColor)
 		)
 	}
 
 	setPacketColor {arg response;
-		if (response == 1) { packetColor = Color.red(alpha:0.2) } { packetColor = Color.blue(alpha: 0.2) }
+		if (response == 1) {
+			\red.postln;
+			packetColor = Color.red(alpha:0.2)
+
+		} {
+			\blue.postln;
+			packetColor = Color.blue(alpha: 0.2)
+		}
 	}
 
 	sendValueToPythonScript {arg sourceIP, buttonValue;

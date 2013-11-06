@@ -65,10 +65,16 @@ class DecoderThread(Thread):
     def __init__(self, pcapObj):
         self.handshakes = {}
         self.endshakes = {}
-        # OSC functionality:
-        sendAddress = '127.0.0.1', 57120
-        self.oscClient=OSCClient()
-        self.oscClient.connect(sendAddress)
+        # OSC functionality (mutlicasting for now)
+        sendAddress1 = '192.168.0.2', 60000
+        sendAddress2 = '192.168.0.3', 60000
+        sendAddress3 = '192.168.0.4', 60000                
+        self.oscClient1=OSCClient()
+        self.oscClient2=OSCClient()
+        self.oscClient3=OSCClient()
+        self.oscClient1.connect(sendAddress1)
+        self.oscClient2.connect(sendAddress2)
+        self.oscClient3.connect(sendAddress3)
         # initialise supercollider
         self.oscSender('/init', [1])
         # Query the type of the link and instantiate a decoder accordingly.
@@ -272,8 +278,12 @@ class DecoderThread(Thread):
         msg.setAddress(name)
         for param in params:
             msg.append(param)
-        self.oscClient.send(msg)
-        print "sending: " + str(msg) + " to: " + str(self.oscClient)
+        self.oscClient1.send(msg)
+        self.oscClient2.send(msg)
+        self.oscClient3.send(msg)       
+        print "sending: " + str(msg) + " to: " + str(self.oscClient1)
+        print "sending: " + str(msg) + " to: " + str(self.oscClient2)
+        print "sending: " + str(msg) + " to: " + str(self.oscClient3)                
 
     # source and stream management
     
@@ -281,7 +291,7 @@ class DecoderThread(Thread):
         # getting length with never work
         index = len(sourceDict)
         streamStack = range(100, -1, -1)
-        sourceDict[sourceIP] = { 'index': index, 'streamDict': {}, 'streamStack': streamStack, 'filterType': 'one' } # init filtertype here for now
+        sourceDict[sourceIP] = { 'index': index, 'streamDict': {}, 'streamStack': streamStack, 'filterType': 'all' } # init filtertype key, but don't set to anything as yet
         sourceIndex = sourceDict[sourceIP]['index']
         self.oscSender('/addSource', [sourceIndex, sourceIP]) # send src port and dst ip here, for visualisation
 
@@ -316,7 +326,7 @@ class DecoderThread(Thread):
 def initOSCServer():
     global st
     global server
-    receiveAddress = '127.0.0.1', 8834
+    receiveAddress = '127.0.0.1', 8489
     server = OSCServer(receiveAddress)
     print str(server)
     server.addDefaultHandlers() # registers 'default' handler (for unmatched messages + more)
@@ -326,7 +336,7 @@ def initOSCServer():
     st.start()
 
 def setSourceFilter(addr, tags, msg, source):
-    print msg
+    print 'changing filter mode' + str(msg)
     sourceIP = msg[0]
     filterType = msg[1]
     sourceDict[sourceIP]['filterType'] = filterType  

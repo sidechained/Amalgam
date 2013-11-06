@@ -12,16 +12,15 @@ class FakeSocket(StringIO):
 def httpparse(fp):
     socket = FakeSocket(fp.read())
     response = HTTPResponse(socket)
+    #print response
     response.begin()
-
     return response
 
 if __name__ == "__main__":
     from os import popen
 
-    with open ("/Users/grahambooth/Desktop/Amalgam/systemç design/session3_decoding_packets_manually/packetç examination/http/404notfound", "r") as myfile:
-        response=httpparse(myfile.read())
-        print response.getheaders()
-        print response.msg
-        print response.status
-
+    pipe = popen("curl -si http://google.com")
+    response = httpparse(pipe)
+    print response.getheaders()
+    #print response.version
+    #print response.status
