@@ -1,5 +1,6 @@
 // SURFER
 
+// now networked
 // orchestrate the visiting of websites across multiple computers
 // will this be done with routines, a timeline view?
 // would be good if each player had a stock of URLs, which they could add to on the fly
