@@ -90,17 +90,19 @@ var onlineButtonDict, playerNames, myName, myNode;
 };
 
 ~showOnlineStatus = {arg addrBook, what, whoPeer;
-	//[what, whoPeer].postln;
+	[what, whoPeer].postln;
+	playerNames.includes(whoPeer.name).postln;
 	if (what == \registeredName) {
-		if (onlineButtonDict.keys.includes(whoPeer.name)) {
-			defer {onlineButtonDict.at(myName).value_(1);}
+		if (playerNames.includes(whoPeer.name)) {
+			whoPeer.name.postln;
+			defer {onlineButtonDict.at(whoPeer.name).value_(1);}
 		}
 	} {
 		if (what == \wentOffline) {
 			// never gets here at the moment (mynode kill doesn't work)
 			\getsHere.postln;
-			if (onlineButtonDict.keys.includes(whoPeer.name)) {
-				defer{onlineButtonDict.at(myName).value_(1);};
+			if (playerNamesincludes(whoPeer.name)) {
+				defer{onlineButtonDict.at(whoPeer.name).value_(1);};
 			}
 		};
 	};
@@ -133,7 +135,10 @@ onlineButtonDict = ();
 playerNames = [\grimac, \grilap];
 myName = \grilap;
 myNode = NMLDecentralisedNode(doWhenMeAdded: ~init);
+~myNode = myNode;
 )
+
+~myNode.addrBook.peers
 
 // http://www.wikipedia.org
 // useful refs:
