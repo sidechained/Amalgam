@@ -3,7 +3,20 @@
 // visualise a routine
 // once I have such a routine I can focus on the data coming from the apacket analyser
 
+// TODO:
+// call refresh from current position routine
+
 (
+~oscDict = ();
+~oscPaths = ['/addStream', '/env', '/removeStream', '/sourcePort', '/destPort', '/response', '/packetLength'];
+
+~oscFuncs !? { ~oscFuncs.do{arg oscFunc; oscFunc.free} };
+~oscFuncs = ~oscPaths.collect{arg oscPath;
+	OSCFunc({arg msg;
+		~oscDict.put(msg[0], msg[3]);
+	}, oscPath);
+};
+
 ~load = {arg url;
 	var command;
 	inform("visiting %".format(url));
@@ -20,25 +33,66 @@
 ~routineLength = ~routineArray.collect{arg event; event.waitTime}.sum;
 
 ~currentPosition = 0;
-u = UserView(nil, Rect(0, 0, 800, 20)).drawFunc_({
-	var currentXPos, waitTimeAccumulator;
-	waitTimeAccumulator = 0;
-	~routineArray.do{arg dict, index;
-		var eventXPos;
-		eventXPos = waitTimeAccumulator.linlin(0, ~routineLength, 0, u.bounds.width);
-		Pen.line(eventXPos@0, eventXPos@u.bounds.height);
-		Pen.strokeColor_(Color.red);
-		Pen.width_(3);
-		Pen.stroke;
-		waitTimeAccumulator = waitTimeAccumulator + dict.waitTime;
-	};
-	currentXPos = ~currentPosition.linlin(0, 1, 0, u.bounds.width);
-	Pen.line(currentXPos@0, currentXPos@u.bounds.height);
-	Pen.strokeColor_(Color.black);
-	Pen.stroke;
-});
-u.animate_(true);
-u.front.alwaysOnTop_(true);
+~uWidth = Window.screenBounds.width;
+
+~makeEventView = {arg labelString, drawFunc;
+	// makes a row
+	var label, view, parameter;
+	label = StaticText().string_(labelString).maxWidth_(100);
+	view = UserView()
+	.animate_(true)
+	.clearOnRefresh_(false)
+	.background_(Color.white)
+	.drawFunc_({
+		var currentXPos, strokeColor;
+		// only draw if value existing in dict
+		~oscDict.at(oscPath) !? {
+			strokeColor = Color.red(alpha: ~oscDict.at(oscPath).linlin(0, 1, 0.2, 1));
+			currentXPos = ~currentPosition.linlin(0, 1, 0, view.bounds.width);
+			Pen.line(currentXPos@0, currentXPos@view.bounds.height);
+			Pen.strokeColor_(strokeColor);
+			Pen.stroke;
+		}
+	});
+	View().layout_(HLayout(*[label,view]).spacing_(0).margins_(0));
+};
+
+~makeOscPathView = {arg oscPath, drawFunc;
+	// makes a row
+	var label, view, parameter;
+	parameter = ~oscDict.at(oscPath);
+	label = StaticText().string_(oscPath).maxWidth_(100);
+	view = UserView()
+	.animate_(true)
+	.clearOnRefresh_(false)
+	.background_(Color.white)
+	.drawFunc_({
+		var waitTimeAccumulator;
+		waitTimeAccumulator = 0;
+		// no need to draw these every time
+		~routineArray.do{arg dict, index;
+			var eventXPos;
+			eventXPos = waitTimeAccumulator.linlin(0, ~routineLength, 0, view.bounds.width);
+			Pen.line(eventXPos@0, eventXPos@view.bounds.height);
+			Pen.strokeColor_(Color.red);
+			Pen.width_(3);
+			Pen.stroke;
+			waitTimeAccumulator = waitTimeAccumulator + dict.waitTime;
+		};
+	});
+	View().layout_(HLayout(*[
+		label,
+		view
+	]).spacing_(0).margins_(0));
+};
+
+~eventView = ~makeEventView.value(\events, ~oscEventDrawFunc);
+~pathViews = ~makeOscPathView.collect{arg oscPath; ~makeView.value(oscPath, ~oscPathDrawFunc); };
+
+v = View(nil, Rect(0, 0, ~uWidth, 200))
+.layout_(VLayout(*[~eventView] ++ ~pathViews).spacing_(1).margins_(0))
+.front
+.alwaysOnTop_(true);
 
 // routine for current position:
 r = Routine({
@@ -60,5 +114,15 @@ Routine({
 		dict.waitTime.wait;
 	};
 }).play(AppClock);
+
+
+// check:
+/*Routine({
+inf.do {
+~oscDict.postln;
+0.5.wait;
+}
+}).play*/
+
 )
 
