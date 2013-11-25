@@ -1,0 +1,1242 @@
+<OSCseq>
+<sequence bpm="120.0" windowwidth="1024" windowheight="720" loopin="-2.0" loopout="11.75" loopon="true" cursorpos="7.740116" stepsize="0.25" displaybounds_left="0.0" displaybounds_top="-3.0" displaybounds_right="4.0" displaybounds_bottom="5.637499999999999" selection_left="0.0" selection_top="-2.75" selection_right="1.0" selection_bottom="-2.5" version="6" drawEventText="true">
+	<devices>
+		<device name="-manual-" ip="127.0.0.1" port="9991" selected="true" manual="true" sendSystemMessages="false"></device>
+	</devices>
+	<tracks>
+		<track id="1" collapsed="false" muted="false" recording="true" pos="0" type="CONTROLLER" doInputFilter="true" address="/addStream">
+			<event beat="1.331078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+		</track>
+		<track id="4" collapsed="false" muted="false" recording="true" pos="1" type="CONTROLLER" doInputFilter="true" address="/sourceIP">
+			<event beat="1.389078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.557078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.573078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.581078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.611078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.621078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.663078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.673078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.727078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.735078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.757078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.765078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.853078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.869078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.889078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.903078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.933078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.979078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.001078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.007078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.031078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.039078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.065078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.133078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.205078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.347078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.403078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.431078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.445078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.455078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.557078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.573078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.591078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.601078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.671078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.697078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.713078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+		</track>
+		<track id="7" collapsed="false" muted="false" recording="true" pos="2" type="CONTROLLER" doInputFilter="true" address="/destPort">
+			<event beat="1.393078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.559078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.579078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.587078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.619078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.643078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.667078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.685078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.729078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.743078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.761078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.781078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.857078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.871078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.895078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.917078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="1.937078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="1.997078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.003078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.015078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.035078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.065078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.069078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.153078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.243078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.409078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.437078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.449078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.459078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.565078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.579078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.595078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.635078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.675078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+			<event beat="2.701078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="49159"></atom>
+			</event>
+			<event beat="2.715078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="80"></atom>
+			</event>
+		</track>
+		<track id="6" collapsed="false" muted="false" recording="true" pos="3" type="CONTROLLER" doInputFilter="true" address="/destIP">
+			<event beat="1.389078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.559078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.577078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.583078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.617078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.639078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.667078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.685078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.729078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.743078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.757078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.779078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.855078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.871078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.893078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.913078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="1.937078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="1.989078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.003078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.013078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.035078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.043078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.069078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.149078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.225078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.409078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.435078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.447078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.455078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.565078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.577078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.595078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.629078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.673078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+			<event beat="2.701078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="149.170.174.227"></atom>
+			</event>
+			<event beat="2.715078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="STRING" value="95.211.113.131"></atom>
+			</event>
+		</track>
+		<track id="5" collapsed="false" muted="false" recording="true" pos="4" type="CONTROLLER" doInputFilter="true" address="/sourcePort">
+			<event beat="1.389078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.559078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.577078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.583078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.615078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.625078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.663078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.683078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.729078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.739078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.757078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.771078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.855078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.871078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.893078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.913078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="1.935078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="1.987078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.003078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.011078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.031078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.041078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.065078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.139078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.215078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.347078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.407078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.433078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.447078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.455078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.563078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.573078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.593078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.625078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.671078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+			<event beat="2.699078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="-3.0"></atom>
+			</event>
+			<event beat="2.715078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.0"></atom>
+			</event>
+		</track>
+		<track id="3" collapsed="false" muted="false" recording="true" pos="5" type="CONTROLLER" doInputFilter="true" address="/env">
+			<event beat="1.389078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="FLOAT" value="0.75"></atom>
+			</event>
+			<event beat="1.395078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.719078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+		</track>
+		<track id="8" collapsed="false" muted="false" recording="true" pos="6" type="CONTROLLER" doInputFilter="true" address="/response">
+			<event beat="1.393078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.559078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.579078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.587078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.619078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.645078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.669078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.687078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.729078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.743078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.763078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.781078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.857078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.871078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.897078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.917078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="1.937078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="1.997078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.003078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.017078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.035078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.065078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.069078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.159078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.243078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.383078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.411078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.437078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.451078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.461078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.565078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.583078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.597078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.635078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.677078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+			<event beat="2.709078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1"></atom>
+			</event>
+			<event beat="2.719078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+		</track>
+		<track id="9" collapsed="false" muted="false" recording="true" pos="7" type="CONTROLLER" doInputFilter="true" address="/packetLength">
+			<event beat="1.395078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.397078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="170"></atom>
+			</event>
+			<event beat="1.563078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.569078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.579078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.587078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.621078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.661078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.671078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.687078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.733078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.753078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.763078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.785078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.859078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.871078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.899078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.917078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="1.941078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="1.999078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.007078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.017078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.035078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.065078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.067078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.069078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.097078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="219"></atom>
+			</event>
+			<event beat="2.131078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.161078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="64"></atom>
+			</event>
+			<event beat="2.205078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.243078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.361078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.385078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.427078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.437078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.451078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.463078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.565078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.587078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.597078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+			<event beat="2.635078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="1420"></atom>
+			</event>
+			<event beat="2.671078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="583"></atom>
+			</event>
+			<event beat="2.677078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="52"></atom>
+			</event>
+		</track>
+		<track id="2" collapsed="false" muted="false" recording="true" pos="8" type="CONTROLLER" doInputFilter="true" address="/removeStream">
+			<event beat="2.937078125" color="FF000000" selected="false">
+				<atom type="INT" value="0"></atom>
+				<atom type="INT" value="0"></atom>
+			</event>
+		</track>
+	</tracks>
+</sequence>
+</OSCseq>

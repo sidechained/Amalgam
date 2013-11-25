@@ -66,15 +66,9 @@ class DecoderThread(Thread):
         self.handshakes = {}
         self.endshakes = {}
         # OSC functionality (mutlicasting for now)
-        sendAddress1 = '192.168.0.2', 60000
-        sendAddress2 = '192.168.0.3', 60000
-        sendAddress3 = '192.168.0.4', 60000                
+        sendAddress1 = '127.0.0.1', 57120
         self.oscClient1=OSCClient()
-        self.oscClient2=OSCClient()
-        self.oscClient3=OSCClient()
         self.oscClient1.connect(sendAddress1)
-        self.oscClient2.connect(sendAddress2)
-        self.oscClient3.connect(sendAddress3)
         # initialise supercollider
         self.oscSender('/init', [1])
         # Query the type of the link and instantiate a decoder accordingly.
@@ -279,11 +273,7 @@ class DecoderThread(Thread):
         for param in params:
             msg.append(param)
         self.oscClient1.send(msg)
-        self.oscClient2.send(msg)
-        self.oscClient3.send(msg)       
         print "sending: " + str(msg) + " to: " + str(self.oscClient1)
-        print "sending: " + str(msg) + " to: " + str(self.oscClient2)
-        print "sending: " + str(msg) + " to: " + str(self.oscClient3)                
 
     # source and stream management
     

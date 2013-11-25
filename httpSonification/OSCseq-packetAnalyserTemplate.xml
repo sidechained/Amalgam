@@ -1,0 +1,27 @@
+<OSCseq>
+<sequence bpm="120.0" windowwidth="1024" windowheight="720" loopin="-2.0" loopout="11.75" loopon="true" cursorpos="-2.0" stepsize="0.25" displaybounds_left="0.0" displaybounds_top="-3.0" displaybounds_right="4.0" displaybounds_bottom="5.387499999999999" selection_left="0.0" selection_top="-2.75" selection_right="1.0" selection_bottom="-2.5" version="6" drawEventText="true">
+	<devices>
+		<device name="-manual-" ip="127.0.0.1" port="9991" selected="true" manual="true" sendSystemMessages="false"></device>
+	</devices>
+	<tracks>
+		<track id="1" collapsed="false" muted="false" recording="true" pos="0" type="CONTROLLER" doInputFilter="true" address="/addStream">
+		</track>
+		<track id="4" collapsed="false" muted="false" recording="true" pos="1" type="CONTROLLER" doInputFilter="true" address="/sourceIP">
+		</track>
+		<track id="7" collapsed="false" muted="false" recording="true" pos="2" type="CONTROLLER" doInputFilter="true" address="/destPort">
+		</track>
+		<track id="6" collapsed="false" muted="false" recording="true" pos="3" type="CONTROLLER" doInputFilter="true" address="/destIP">
+		</track>
+		<track id="5" collapsed="false" muted="false" recording="true" pos="4" type="CONTROLLER" doInputFilter="true" address="/sourcePort">
+		</track>
+		<track id="3" collapsed="false" muted="false" recording="true" pos="5" type="CONTROLLER" doInputFilter="true" address="/env">
+		</track>
+		<track id="8" collapsed="false" muted="false" recording="true" pos="6" type="CONTROLLER" doInputFilter="true" address="/response">
+		</track>
+		<track id="9" collapsed="false" muted="false" recording="true" pos="7" type="CONTROLLER" doInputFilter="true" address="/packetLength">
+		</track>
+		<track id="2" collapsed="false" muted="false" recording="true" pos="8" type="CONTROLLER" doInputFilter="true" address="/removeStream">
+		</track>
+	</tracks>
+</sequence>
+</OSCseq>
