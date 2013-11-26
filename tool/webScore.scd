@@ -4,11 +4,13 @@
 // once I have such a routine I can focus on the data coming from the apacket analyser
 
 // TODO:
-// call refresh from current position routine
+// - call refresh from current position routine
+// - monitor start and end of loading for a single website (draw a block)
+// - when addStream draw 1 constantly in website's colour, when removeStream stop drawing
 
 (
 ~oscDict = ();
-~oscPaths = ['/addStream', '/env', '/removeStream', '/sourcePort', '/destPort', '/response', '/packetLength'];
+~oscPaths = ['/stream'/*, '/env', '/removeStream', '/sourcePort', '/destPort', '/response', '/packetLength'*/];
 
 ~oscFuncs !? { ~oscFuncs.do{arg oscFunc; oscFunc.free} };
 ~oscFuncs = ~oscPaths.collect{arg oscPath;
@@ -26,9 +28,9 @@
 
 // array of which websites will play and when
 ~routineArray = [
-	(urlToVisit: "http://www.wikimedia.org", waitTime: 2),
+	(urlToVisit: "http://www.wikimedia.org", waitTime: 100)/*,
 	(urlToVisit: "http://www.wikileaks.org", waitTime: 3.5),
-	(urlToVisit: "http://www.wikipedia.org", waitTime: 8),
+	(urlToVisit: "http://www.wikipedia.org", waitTime: 8),*/
 ];
 ~routineLength = ~routineArray.collect{arg event; event.waitTime}.sum;
 
@@ -39,6 +41,36 @@
 	// makes a row
 	var label, view, parameter;
 	label = StaticText().string_(labelString).maxWidth_(100);
+	view = UserView()
+	.animate_(true)
+	.clearOnRefresh_(true)
+	.background_(Color.white)
+	.drawFunc_({
+		var waitTimeAccumulator;
+		waitTimeAccumulator = 0;
+		// no need to draw these every time
+		~routineArray.do{arg dict, index;
+			var currentXPos, eventXPos;
+			eventXPos = waitTimeAccumulator.linlin(0, ~routineLength, 0, v.bounds.width);
+			Pen.line(eventXPos@0, eventXPos@view.bounds.height);
+			Pen.strokeColor_(Color.red);
+			Pen.width_(3);
+			Pen.stroke;
+			currentXPos = ~currentPosition.linlin(0, 1, 0, view.bounds.width);
+			Pen.line(currentXPos@0, currentXPos@view.bounds.height);
+			Pen.strokeColor_(Color.black);
+			Pen.stroke;
+			waitTimeAccumulator = waitTimeAccumulator + dict.waitTime;
+		};
+	});
+	View().layout_(HLayout(*[label,view]).spacing_(0).margins_(0));
+};
+
+~makeOscPathView = {arg oscPath, drawFunc;
+	// makes a row
+	var label, view, parameter;
+	parameter = ~oscDict.at(oscPath);
+	label = StaticText().string_(oscPath).maxWidth_(100);
 	view = UserView()
 	.animate_(true)
 	.clearOnRefresh_(false)
@@ -54,32 +86,6 @@
 			Pen.stroke;
 		}
 	});
-	View().layout_(HLayout(*[label,view]).spacing_(0).margins_(0));
-};
-
-~makeOscPathView = {arg oscPath, drawFunc;
-	// makes a row
-	var label, view, parameter;
-	parameter = ~oscDict.at(oscPath);
-	label = StaticText().string_(oscPath).maxWidth_(100);
-	view = UserView()
-	.animate_(true)
-	.clearOnRefresh_(false)
-	.background_(Color.white)
-	.drawFunc_({
-		var waitTimeAccumulator;
-		waitTimeAccumulator = 0;
-		// no need to draw these every time
-		~routineArray.do{arg dict, index;
-			var eventXPos;
-			eventXPos = waitTimeAccumulator.linlin(0, ~routineLength, 0, view.bounds.width);
-			Pen.line(eventXPos@0, eventXPos@view.bounds.height);
-			Pen.strokeColor_(Color.red);
-			Pen.width_(3);
-			Pen.stroke;
-			waitTimeAccumulator = waitTimeAccumulator + dict.waitTime;
-		};
-	});
 	View().layout_(HLayout(*[
 		label,
 		view
@@ -87,7 +93,7 @@
 };
 
 ~eventView = ~makeEventView.value(\events, ~oscEventDrawFunc);
-~pathViews = ~makeOscPathView.collect{arg oscPath; ~makeView.value(oscPath, ~oscPathDrawFunc); };
+~pathViews = ~oscPaths.collect{arg oscPath; ~makeOscPathView.value(oscPath, ~oscPathDrawFunc); };
 
 v = View(nil, Rect(0, 0, ~uWidth, 200))
 .layout_(VLayout(*[~eventView] ++ ~pathViews).spacing_(1).margins_(0))
@@ -95,7 +101,7 @@ v = View(nil, Rect(0, 0, ~uWidth, 200))
 .alwaysOnTop_(true);
 
 // routine for current position:
-r = Routine({
+Routine({
 	var waitTime, iterations, startTime;
 	waitTime = 1/60; // default framerate
 	iterations = ~routineLength/waitTime;
@@ -114,6 +120,7 @@ Routine({
 		dict.waitTime.wait;
 	};
 }).play(AppClock);
+
 
 
 // check:
