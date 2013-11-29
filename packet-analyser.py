@@ -45,9 +45,9 @@ class DecoderThread(Thread):
     def __init__(self, pcapObj):
         self.searchTerm = 'option'
         self.ipDict = {
-            '143.117.190.175': 'aidan'
-            '143.117.178.248': 'michael'
-            '143.117.177.118': 'graham'
+            '143.117.190.175': 'aidan',
+            '143.117.178.248': 'michael',
+            '143.117.177.118': 'graham',
             '143.117.185.92': 'robin'
             }
         self.hostDict = {}
