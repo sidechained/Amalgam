@@ -144,33 +144,38 @@ class DecoderThread(Thread):
         
     def parseExistingResponse(self, flowKey, packetString, src, dst, tcp):
         if self.flowDict[flowKey]['type'] == 'fixedLength':
-            startIndex, endIndex = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString)
-            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, startIndex, endIndex)
+            contentLength = self.flowDict[flowKey]['length']
+            mappedStartIndex, mappedEndIndex, packetContentLength, progress = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString, contentLength)
+            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, mappedStartIndex, mappedEndIndex, packetContentLength, progress)
             #self.bodySearch(body)
             self.detectFixedLengthEnd(flowKey, src, dst)
         elif self.flowDict[flowKey]['type'] == 'chunked':
-            startIndex, endIndex = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString)
-            
-            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, startIndex, endIndex)
+            contentLength = arbitraryChunkedLength
+            mappedStartIndex, mappedEndIndex, packetContentLength, progress = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString, contentLength)
+            progress = float(accumulatedBodyLength)/float(arbitraryChunkedLength)
+            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, mappedStartIndex, mappedEndIndex, packetContentLength, progress)
             #self.bodySearch(body)
             self.detectChunkedEnd(packetString, src, dst)
 
-    def accumulateBodyAndReturnPacketPosition(self, flowKey, body):
+    def accumulateBodyAndReturnPacketPosition(self, flowKey, body, contentLength):
         existingBody = self.flowDict[flowKey]['body']       
         newBody = self.flowDict[flowKey]['body'] = existingBody + body
-        startIndex = len(existingBody) + 1
-        endIndex = len(newBody)
-        return startIndex, endIndex
+        mappedStartIndex = len(existingBody) + 1 / contentLength
+        mappedEndIndex = len(newBody) / contentLength
+        packetContentLength = len(body)
+        progress = float(accumulatedBodyLength)/float(contentLength)
+        return mappedStartIndex, mappedEndIndex, packetContentLength, progress
    
-    def sendInfoAboutThisPacket(self, flowKey, body, src, dst, tcp, startIndex, endIndex):
+    def sendInfoAboutThisPacket(self, flowKey, body, src, dst, tcp, mappedStartIndex, mappedEndIndex, packetContentLength, progress):
         # call or response
-        self.oscSender('/packetByteRange', [startIndex, endIndex])
-        self.oscSender('/data', [body])
+        self.oscSender('/progress', [progress])   
+        self.oscSender('/packetByteRange', [mappedStartIndex, mappedEndIndex])
+        self.oscSender('/bodyLength', [packetContentLength])   
+        self.oscSender('/body', [body])
 
     def detectFixedLengthEnd(self, flowKey, src, dst):
         accumulatedBodyLength = len(self.flowDict[flowKey]['body'])
         contentLength = self.flowDict[flowKey]['length']
-        self.oscSender('/progress', [float(accumulatedBodyLength)/float(contentLength)])   
         print str(accumulatedBodyLength) + '/' + str(contentLength)
         if accumulatedBodyLength == contentLength:
             self.doStop(src, dst)
@@ -184,7 +189,7 @@ class DecoderThread(Thread):
         path = self.hostDict[(src, dst)]['path']
         destinationIP = dst[0]
         sourceIP = src[0]
-        scaledDestinationPort = scale(dst[1], 49152, 65535, 0, 1)
+        scaledDestinationPort = self.scale(dst[1], 49152, 65535, 0, 1)
         # no use to have the source Port as it will always be 80 (http)
         self.oscSender('/start', [responseCode, host, path, destinationIP, sourceIP, scaledDestinationPort])
 
@@ -214,7 +219,7 @@ class DecoderThread(Thread):
             # could explicitly try to detect errno 61 here
             print "WARNING: cannot send to SuperCollider"
             
-    def scale(value, leftMin, leftMax, rightMin, rightMax):
+    def scale(self, value, leftMin, leftMax, rightMin, rightMax):
         leftSpan = leftMax - leftMin
         rightSpan = rightMax - rightMin
         valueScaled = float(value - leftMin) / float(leftSpan)
