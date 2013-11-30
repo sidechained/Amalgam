@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 # TODO:
-# fix ends (packet length doesn't add up, chunked end packet not always received)
+# DONE: fix ends (packet length doesn't add up, chunked end packet not always received)
 # find out why sometimes the body seems to be encryted
 # body search trigger (parse as you go) - pass in searchTerm
-# autodiscover peers (broadcast wifi address)
+# what happens when transfers stop half way through?
 
 # TOFIX:
 # messages continue to be sent even after stop
@@ -44,18 +44,14 @@ class FakeSocket(StringIO):
 class DecoderThread(Thread):
     def __init__(self, pcapObj):
         self.searchTerm = 'option'
-        self.ipDict = {
-            '143.117.190.175': 'aidan',
-            '143.117.178.248': 'michael',
-            '143.117.177.118': 'graham',
-            '143.117.185.92': 'robin'
-            }
+        self.myName = 'graham'
+        self.myIP = socket.gethostbyname(socket.gethostname()) 
         self.hostDict = {}
         self.flowDict = {}
         # OSC functionality (mutlicasting for now)
         sendAddress1 = '127.0.0.1', 57120
-        self.oscClient1=OSCClient()
-        self.oscClient1.connect(sendAddress1)
+        self.oscClient=OSCClient()
+        self.oscClient.connect(sendAddress1)
         # initialise supercollider
         self.oscSender('/init', [1])
         # Query the type of the link and instantiate a decoder accordingly.
@@ -86,25 +82,24 @@ class DecoderThread(Thread):
 
     def detectHTTP(self, tcp, src, dst):
         packetString = tcp.get_data_as_string()
-
-        # requests
-        srcIp = src[0]
-        if srcIp in self.ipDict: # only pass on data from players we know
-            myName = self.ipDict[srcIp]
-            request = HTTPRequest(packetString)
-            if request.error_code is None:
-                if request.command == 'GET':
-                    if request.request_version == 'HTTP/1.1':
-                        # store the host and path related to this request by unique key for later lookup:
-                        self.hostDict[(dst, src)] = {}
-                        self.hostDict[(dst, src)]['host'] = request.headers['host'] 
-                        self.hostDict[(dst, src)]['path'] = request.path                        
-
+        # - check if flow exists, if so look for response end, if not look for response start, if not look for request
+        
         # responses
+        existingFlowKey = (src, dst)
+        srcIp = src[0]
         dstIp = dst[0]
-        if dstIp in self.ipDict: # only pass on data from players we know
+        if existingFlowKey in self.flowDict:
+            body = packetString
+            if self.flowDict[existingFlowKey]['type'] == 'fixedLength':
+                self.doPerPacket(existingFlowKey, body, src, dst, tcp)
+                self.accumulateBody(existingFlowKey, body)
+                self.detectFixedLengthEnd(existingFlowKey, src, dst)
+            elif self.flowDict[existingFlowKey]['type'] == 'chunked':
+                self.doPerPacket(existingFlowKey, body, src, dst, tcp)
+                self.accumulateBody(existingFlowKey, body)
+                self.detectChunkedEnd(body, src, dst)
+        elif dstIp == self.myIP: # only pass on data if it matches local IP (needed now?)
             if (src, dst) in self.hostDict: # only pass on responses that relate to requests we've already logged
-                myName = self.ipDict[dstIp]
                 # parse HTTP/1.1 200 OK responses
                 if packetString[:8] == "HTTP/1.1":
                     responseCode = packetString[9:12]
@@ -118,91 +113,89 @@ class DecoderThread(Thread):
                             body = packetString[bodyIndex:]
                             flowKey = (src, dst)
                             for item in headerArray:
-                                if item[0] == 'content-type' and item[1] == 'text/html':
+                                if item[0] == 'content-type' and 'text' in item[1]: # accept any kind of text content
                                     for item in headerArray:
                                         if item[0] == 'content-length':
                                             print 'fixed length'
-                                            self.flowDict[flowKey] = {'body': body, 'type': 'fixedLength', 'length': item[1]}
-                                            self.doStart(myName, flowKey, body, src, dst, tcp)
+                                            self.flowDict[flowKey] = {'body': body, 'type': 'fixedLength', 'length': int(item[1])}
+                                            self.doStart(flowKey, body, src, dst, tcp, responseCode)
+                                            self.doPerPacket(existingFlowKey, body, src, dst, tcp)
                                         elif item[0] == 'transfer-encoding' and item[1] == 'chunked':
                                             print 'chunked'
                                             self.flowDict[flowKey] = {'body': body, 'type': 'chunked'}
-                                            self.doStart(myName, flowKey, body, src, dst, tcp)
+                                            self.doStart(flowKey, body, src, dst, tcp, responseCode)
+                                            self.doPerPacket(existingFlowKey, body, src, dst, tcp)
                         else:
                             print "body not found"
+        # requests
+        elif srcIp == self.myIP: # only pass on data if it matches local IP (needed now?)
+            request = HTTPRequest(packetString)
+            if request.error_code is None:
+                if request.command == 'GET':
+                    if request.request_version == 'HTTP/1.1':
+                        # store the host and path related to this request by unique key for later lookup:
+                        self.hostDict[(dst, src)] = {}
+                        self.hostDict[(dst, src)]['host'] = request.headers['host'] 
+                        self.hostDict[(dst, src)]['path'] = request.path                        
 
-                # pass on
-                existingFlowKey = (src, dst)
-                if existingFlowKey in self.flowDict:               
-                    body = packetString
-                    if self.flowDict[existingFlowKey]['type'] == 'fixedLength':
-                        self.doPerPacket(myName, existingFlowKey, body, src, tcp)
-                        self.detectFixedLengthEnd(existingFlowKey, myName, src, dst)
-                    elif self.flowDict[existingFlowKey]['type'] == 'chunked':
-                        self.doPerPacket(myName, existingFlowKey, body, src, tcp)
-                        self.detectChunkedEnd(body, myName, src, dst)
-
-    def doStart(self, myName, flowKey, body, src, dst, tcp):
+    def doStart(self, flowKey, body, src, dst, tcp, responseCode):
         host = self.hostDict[(src, dst)]['host']
         path = self.hostDict[(src, dst)]['path']
-        self.oscSender('/start', [myName, host, path])
-        #self.doPerPacket(myName, flowKey, body, src, tcp)
+        self.oscSender('/start', [self.myName, responseCode, host, path])
+        #self.doPerPacket(self.myName, flowKey, body, src, tcp)
 
-    def doStop(self, myName, src, dst):
+    def doStop(self, src, dst):
         host = self.hostDict[(src, dst)]['host']
         path = self.hostDict[(src, dst)]['path']
-        del self.hostDict[(src, dst)]
-        self.oscSender('/stop', [myName, host, path])
+        del self.hostDict[(src, dst)] # need to do this?
+        del self.flowDict[(src, dst)]
+        self.oscSender('/stop', [self.myName, host, path])
 
-    def doPerPacket(self, myName, flowKey, body, src, tcp):
-        self.accumulateBody(myName, flowKey, body)
-        self.bodySearch(myName, body)
-        self.oscSender('/sourceIP', [myName, src[0]])
+    def doPerPacket(self, flowKey, body, src, dst, tcp):
+        #self.bodySearch(body)
+        self.oscSender('/sourceIP', [self.myName, src[0]])
+        self.oscSender('/destinationIP', [self.myName, dst[0]])
         self.oscSender('/sourcePort', [src[1]])
+        self.oscSender('/detinationPort', [dst[1]])        
         self.oscSender('/packetLength', [tcp.parent().get_ip_len()])
-        self.oscSender('/data', [myName, body])                                   
+        self.oscSender('/data', [self.myName, body])                                   
 
-    def accumulateBody(self, myName, flowKey, body):
-        accumulatedBody = self.flowDict[flowKey]['body']
-        startIndex = len(accumulatedBody) + 1
-        self.flowDict[flowKey]['body'] = accumulatedBody + body
-        newAccumulatedBody = self.flowDict[flowKey]['body']
-        stopIndex = len(newAccumulatedBody)
-        self.oscSender('/packetByteRange', [myName, startIndex, stopIndex])   
+    def accumulateBody(self, flowKey, body):
+        existingBody = self.flowDict[flowKey]['body']       
+        newBody = self.flowDict[flowKey]['body'] = existingBody + body
+        startIndex = len(existingBody) + 1
+        stopIndex = len(newBody)
+        self.oscSender('/packetByteRange', [self.myName, startIndex, stopIndex])   
                 
-    def bodySearch(self, myName, body):
+    def bodySearch(self, body):
         searchResults = body.find(self.searchTerm)
         if searchResults is not -1:
-            self.oscSender('/bodyTrigger', [myName, searchResults]) # could use amount of times found here (or locations, actually)
+            self.oscSender('/bodyTrigger', [self.myName, searchResults]) # could use amount of times found here (or locations, actually)
         
-    def oscSender(self, name, params):
+    def oscSender(self, addr, params):
         msg = OSCMessage()
-        msg.setAddress(name)
+        msg.setAddress(addr)
         if params is not None:
             for param in params:
                 msg.append(param)
-        print "sending: " + str(msg) + " to: " + str(self.oscClient1)
+        print "sending: " + str(msg) + " to: " + str(self.oscClient) # do not indent this line!
         try:
-            self.oscClient1.send(msg)
+            self.oscClient.send(msg)
         except OSCClientError:
             # could explicitly try to detect errno 61 here
             print "ERROR: cannot send to SuperCollider"
 
-    def detectFixedLengthEnd(self, flowKey, myName, src, dst):
-        # targetLength = self.flowDict[existingFlowKey]['ength']
-        # actualLength = len(self.flowDict[existingFlowKey]['body'])
-        # print str(actualLength) + '/' + str(targetLength)
-        # print float(actualLength)/float(targetLength)
-        # actualLength is 832 bytes too long
-        accumulatedBody = self.flowDict[flowKey]['body']
+    def detectFixedLengthEnd(self, flowKey, src, dst):
+        accumulatedBodyLength = len(self.flowDict[flowKey]['body'])
         contentLength = self.flowDict[flowKey]['length']
-        if len(accumulatedBody) > contentLength:
-            del self.flowDict[flowKey]
-            self.doStop(myName, src, dst)
+        self.oscSender('/progress', [self.myName, float(accumulatedBodyLength)/float(contentLength)])   
+        print str(accumulatedBodyLength) + '/' + str(contentLength)
+        if accumulatedBodyLength == contentLength:
+            self.doStop(src, dst)
 
-    def detectChunkedEnd(self, body, myName, src, dst):
+    def detectChunkedEnd(self, body, src, dst):
         if '0\r\n\r\n' in body: # doesn't always work
-            self.doStop(myName, src, dst)
+            self.doStop(src, dst)
 
 # methods
 
