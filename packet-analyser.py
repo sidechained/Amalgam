@@ -46,7 +46,8 @@ class DecoderThread(Thread):
         self.searchTerm = 'option'
         self.hostDict = {}
         self.flowDict = {}
-        # OSC functionality (mutlicasting for now)
+        self.arbitraryChunkedLength = 30000 # as length of chunked tranfers can not be measured, we will provide an artibrary length for now
+        # OSC functionality (multicasting for now)
         sendAddress = '127.0.0.1', 57120
         self.oscClient=OSCClient()
         self.oscClient.connect(sendAddress)
@@ -138,7 +139,7 @@ class DecoderThread(Thread):
         self.flowDict[flowKey] = {'body': body, 'type': 'chunked'}
         self.doStart(flowKey, body, src, dst, tcp, responseCode)
         startIndex = 0
-        endIndex = len(body)        
+        endIndex = len(body)
         self.sendInfoAboutThisPacket(flowKey, body, src, dst, tcp, startIndex, endIndex)  
         
     def parseExistingResponse(self, flowKey, packetString, src, dst, tcp):
@@ -149,6 +150,7 @@ class DecoderThread(Thread):
             self.detectFixedLengthEnd(flowKey, src, dst)
         elif self.flowDict[flowKey]['type'] == 'chunked':
             startIndex, endIndex = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString)
+            
             self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, startIndex, endIndex)
             #self.bodySearch(body)
             self.detectChunkedEnd(packetString, src, dst)
@@ -162,9 +164,8 @@ class DecoderThread(Thread):
    
     def sendInfoAboutThisPacket(self, flowKey, body, src, dst, tcp, startIndex, endIndex):
         # call or response
-        self.oscSender('/packetLength', [tcp.parent().get_ip_len()])
-        self.oscSender('/data', [body])
         self.oscSender('/packetByteRange', [startIndex, endIndex])
+        self.oscSender('/data', [body])
 
     def detectFixedLengthEnd(self, flowKey, src, dst):
         accumulatedBodyLength = len(self.flowDict[flowKey]['body'])
@@ -183,9 +184,9 @@ class DecoderThread(Thread):
         path = self.hostDict[(src, dst)]['path']
         destinationIP = dst[0]
         sourceIP = src[0]
-        destinationPort = dst[1]
-        # sourceIP and destinationPort are the 
-        self.oscSender('/start', [responseCode, host, path, destinationIP, sourceIP, destinationPort])
+        scaledDestinationPort = scale(dst[1], 49152, 65535, 0, 1)
+        # no use to have the source Port as it will always be 80 (http)
+        self.oscSender('/start', [responseCode, host, path, destinationIP, sourceIP, scaledDestinationPort])
 
     def doStop(self, src, dst):
         host = self.hostDict[(src, dst)]['host']
@@ -212,6 +213,12 @@ class DecoderThread(Thread):
         except OSCClientError:
             # could explicitly try to detect errno 61 here
             print "WARNING: cannot send to SuperCollider"
+            
+    def scale(value, leftMin, leftMax, rightMin, rightMax):
+        leftSpan = leftMax - leftMin
+        rightSpan = rightMax - rightMin
+        valueScaled = float(value - leftMin) / float(leftSpan)
+        return rightMin + (valueScaled * rightSpan)
 
 # methods
 
