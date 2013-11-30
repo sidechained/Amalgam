@@ -84,18 +84,15 @@ class DecoderThread(Thread):
     def detectRequestOrNewResponseOrExistingResponse(self, packetString, src, dst, tcp):
         request = HTTPRequest(packetString)
         if request.error_code is None: # detect request
-            print 'request'
             self.parseRequest(request, src, dst)
         elif packetString[:8] == "HTTP/1.1": # detect response
             # only pass if a request was sent
             flowKey = (src, dst)
             if flowKey in self.hostDict:
-                print 'newResponse'
                 self.parseNewResponse(packetString, src, dst, tcp)
         else:
-            print 'existingResponse'
-            existingFlowKey = (src, dst)
-            if existingFlowKey in self.flowDict: # continue if packet is a continuation of an existing response
+            flowKey = (src, dst)
+            if flowKey in self.flowDict: # continue if packet is a continuation of an existing response
                 self.parseExistingResponse(flowKey, packetString, src, dst, tcp) # with an existing response the body is the entire packetstring
 
     def parseRequest(self, request, src, dst):
@@ -132,23 +129,27 @@ class DecoderThread(Thread):
         print 'fixed length'
         self.flowDict[flowKey] = {'body': body, 'type': 'fixedLength', 'length': length}
         self.doStart(flowKey, body, src, dst, tcp, responseCode)
-        self.doPerPacket(existingFlowKey, body, src, tcp)
+        startIndex = 0
+        endIndex = len(body)        
+        self.sendInfoAboutThisPacket(flowKey, body, src, dst, tcp, startIndex, endIndex)  
 
     def parseChunkedResponse(self, flowKey, body, src, dst, tcp, responseCode):
         print 'chunked'
         self.flowDict[flowKey] = {'body': body, 'type': 'chunked'}
         self.doStart(flowKey, body, src, dst, tcp, responseCode)
-        self.doPerPacket(existingFlowKey, body, src, tcp)  
+        startIndex = 0
+        endIndex = len(body)        
+        self.sendInfoAboutThisPacket(flowKey, body, src, dst, tcp, startIndex, endIndex)  
         
     def parseExistingResponse(self, flowKey, packetString, src, dst, tcp):
         if self.flowDict[flowKey]['type'] == 'fixedLength':
             startIndex, endIndex = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString)
-            self.sendInfoAboutThisPacket(flowKey, packetString, src, tcp, startIndex, stopIndex)
+            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, startIndex, endIndex)
             #self.bodySearch(body)
             self.detectFixedLengthEnd(flowKey, src, dst)
         elif self.flowDict[flowKey]['type'] == 'chunked':
             startIndex, endIndex = self.accumulateBodyAndReturnPacketPosition(flowKey, packetString)
-            self.sendInfoAboutThisPacket(flowKey, packetString, src, tcp, startIndex, stopIndex)
+            self.sendInfoAboutThisPacket(flowKey, packetString, src, dst, tcp, startIndex, endIndex)
             #self.bodySearch(body)
             self.detectChunkedEnd(packetString, src, dst)
 
@@ -156,15 +157,14 @@ class DecoderThread(Thread):
         existingBody = self.flowDict[flowKey]['body']       
         newBody = self.flowDict[flowKey]['body'] = existingBody + body
         startIndex = len(existingBody) + 1
-        stopIndex = len(newBody)
-        return startIndex, stopIndex
+        endIndex = len(newBody)
+        return startIndex, endIndex
    
-    def sendInfoAboutThisPacket(self, flowKey, body, src, tcp, startIndex, stopIndex):
-        self.oscSender('/sourceIP', [src[0]])
-        self.oscSender('/sourcePort', [src[1]])
+    def sendInfoAboutThisPacket(self, flowKey, body, src, dst, tcp, startIndex, endIndex):
+        # call or response
         self.oscSender('/packetLength', [tcp.parent().get_ip_len()])
         self.oscSender('/data', [body])
-        self.oscSender('/packetByteRange', [startIndex, stopIndex])
+        self.oscSender('/packetByteRange', [startIndex, endIndex])
 
     def detectFixedLengthEnd(self, flowKey, src, dst):
         accumulatedBodyLength = len(self.flowDict[flowKey]['body'])
@@ -181,7 +181,11 @@ class DecoderThread(Thread):
     def doStart(self, flowKey, body, src, dst, tcp, responseCode):
         host = self.hostDict[(src, dst)]['host']
         path = self.hostDict[(src, dst)]['path']
-        self.oscSender('/start', [responseCode, host, path])
+        destinationIP = dst[0]
+        sourceIP = src[0]
+        destinationPort = dst[1]
+        # sourceIP and destinationPort are the 
+        self.oscSender('/start', [responseCode, host, path, destinationIP, sourceIP, destinationPort])
 
     def doStop(self, src, dst):
         host = self.hostDict[(src, dst)]['host']
@@ -207,7 +211,7 @@ class DecoderThread(Thread):
             self.oscClient.send(msg)
         except OSCClientError:
             # could explicitly try to detect errno 61 here
-            print "ERROR: cannot send to SuperCollider"
+            print "WARNING: cannot send to SuperCollider"
 
 # methods
 
