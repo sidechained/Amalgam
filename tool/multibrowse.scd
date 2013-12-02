@@ -1,5 +1,16 @@
 // collaborative browsing
 
+// TODO
+// 'missing value' error
+// set min and max refresh time bounds
+// add ability to refresh by hand
+
+// Autorefreshtime:
+// - WARN if too low
+// - what is the minimum?
+// - 1.5 page still gets chance to load
+// - 0.5 it doesn't (could play with this)
+
 // - collaborative web surfing tool
 // - decentralised network
 // - can the browser be the driver?
@@ -12,15 +23,14 @@
 // - DON'T MAKE GUI UNTIL API IS DONE
 
 // 1. BASIC API
-// browse/refresh frontmost web page in Safari
+// - browse/refresh frontmost web page in Safari
 // - sonically, will respond to four domains only
 // - first visit will be entering URL
 // - URL can then be set to refresh automatically (given rate)
 // - when refreshing stops, about:blank should appear
 
 // 2. COLLABORATIVE
-// - every can start/stop each other's pages, and adjust the timing
-
+// - every can start/stop each other's pages, and adjust the refresh rate timing
 // - state will be stored in an OSCObjectSpace
 // - one OSCObjectSpace per player
 // - keys will be: \isRefreshing, \timeBetweenRefreshes
@@ -39,7 +49,6 @@
 
 // 5. SYNTHGUI's
 
-
 (
 // main
 ~autoRefreshTime = 1;
@@ -48,49 +57,6 @@
 ~setAutoRefreshTime.value(1);
 ~stopRefreshing.value;
 )
-
-
-(
-~tempo = 60; // in bpm
-// master will run this:
-OSCdef(\clock, {arg msg;
-	var currentTime;
-	inform("receiving: %".format(msg));
-	currentTime = msg[1];
-	// need modulo
-}, '/clock');
-)
-
-(
-// slaves will run this:
-~clockRoutine !? {~clockRoutine.free}; // prevent multiple clocks
-~clockRoutine = Routine({
-	var now;
-	now = Main.elapsedTime; // do this on startup
-	inf.do{
-		var currentTime, msgToSend;
-		currentTime = Main.elapsedTime - now; // send this
-		msgToSend = [\clock, currentTime];
-		inform("sending: %".format(msgToSend));
-		NetAddr("localhost", 57120).sendMsg(*msgToSend);// broadcast time (local for now)
-		// or put in OSCDataSpace
-		0.1.wait; // wait time here
-	};
-}).play(SystemClock) // can run thru cmd + period?
-)
-
-OSCFunc.trace(true)
-
-s.quit
-
-/*a = AddrBook();
-OSCDataSpace(oscPath: '/collectiveSpace')
-
-OSCDataSpace.addDependant({arg a, b, c, d;
-[a, b, c, d].postln;
-case
-{ what == \clock } { ~currentTime = value }
-})*/
 
 (
 // GUI
@@ -108,6 +74,7 @@ case
 	~refreshRoutine= Routine({
 		inf.do{
 			"osascript -e 'tell application \"Safari\"' -e 'do JavaScript \"location.reload(true)\" in document 1' -e 'end tell'".unixCmd;
+
 			~autoRefreshTime.wait;
 		}
 	}).play(SystemClock)
@@ -119,26 +86,31 @@ case
 };
 
 ~setAutoRefreshTime = {arg autoRefreshTime;
-	// WARN if too low
-	// what is the minimum?
-	// 1.5 page still gets chance to load
-	// 0.5 it doesn't (could play with this)
+
 	~autoRefreshTime = autoRefreshTime;
 };
 
 // COLLABORATIVE FUNCTIONS:
 
-~putStartRefreshing = {arg playerName;
+~setRefreshState = {arg playerName, refreshState;
 	var dataSpace;
 	dataSpace = ~playerDataSpaces.at(playerName);
-	dataSpace.put(\startRefreshing);
+	dataSpace.put(\refreshState, refreshState);
 };
 
-~putStopRefreshing = {arg playerName;
+~setRefreshRate = {arg playerName, refreshRate;
 	var dataSpace;
 	dataSpace = ~playerDataSpaces.at(playerName);
-	dataSpace.put(\stopRefreshing);
+	dataSpace.put(\refreshRate, refreshRate);
 };
+
+/*~getRefreshState = {
+~playerDataSpaces.at(~myName, \refreshState);
+};
+
+~getRefreshRate = {
+~playerDataSpaces.at(~myName, \refreshRate);
+};*/
 
 // GUI FUNCTIONS:
 
@@ -148,22 +120,17 @@ case
 	urlLabel = StaticText().string_("nothingyet").background_(Color.white);
 	refreshButton = Button()
 	.states_([
-		["refresh", Color.black, Color.white],
-		["refresh", Color.black, Color.green(alpha:0.2)]
+		["start", Color.black, Color.white],
+		["stop", Color.black, Color.green(alpha:0.2)]
 	])
 	.action_({arg button;
-		case
-		{ button.value == 1 } { ~startRefreshing.value(playerName) }
-		{ button.value == 0 } { ~stopRefreshing.value(playerName) }
+		~setRefreshState.value(playerName, button.value.asBoolean);
 	});
 	refreshTime = NumberBox().minWidth_(50)
 	.value_(~autoRefreshTime)
 	.action_({arg numberBox;
-		var autoRefreshTime;
-		autoRefreshTime = numberBox.value;
-		~setAutoRefreshTime.value(autoRefreshTime);
-	})
-	.doAction;
+		~setRefreshRate.value(playerName, numberBox.value);
+	});
 	View().layout_(HLayout(
 		[playerNameLabel, stretch: ~stretch[0]],
 		[urlLabel, stretch: ~stretch[1]],
@@ -173,12 +140,15 @@ case
 };
 
 ~makeCollaborativeGUI = {
-	var titleRow, refreshRows;
+	var clockGUI, titleRow, refreshRows;
+	~onlineColor = Color.green(alpha: 0.3);
+	~offlineColor = Color.black;
+	clockGUI = ~makeClockGUI.value;
 	titleRow = ~makeTitleRow.value;
 	refreshRows = ~expectedPlayerNames.collect({arg expectedPlayerName;
 		~makeRefreshRow.value(expectedPlayerName);
 	});
-	View(nil, Rect(0, 0, 800, 300)).layout_(VLayout(*[titleRow] ++ refreshRows));
+	View(nil, Rect(0, 0, 800, 400)).layout_(VLayout(*[clockGUI, titleRow] ++ refreshRows));
 };
 
 ~makeTitleRow = {
@@ -191,71 +161,165 @@ case
 		[playerTitle, stretch: ~stretch[0]],
 		[urlTitle, stretch: ~stretch[1]],
 		[refreshTitle, stretch: ~stretch[2]],
-		[refreshTimeTitle, stretch: ~stretch[3]
-		]
+		[refreshTimeTitle, stretch: ~stretch[3]]
 	));
+};
+
+~makeClockGUI = {
+	var slaveMasterButton, startStopButton, clockDisplay;
+	slaveMasterButton = Button()
+	.states_([["master"], ["slave"]])
+	.action_({arg button;
+		if (button.value == 1) {
+			//~isClockMaster = true;
+			startStopButton.states_([["start"],["stop"]])
+		} {
+			//~isClockMaster = false;
+			startStopButton.states_([[]]);
+		};
+	});
+	startStopButton = Button()
+	.states_([])
+	.action_({arg button;
+		if (button.value == 1) {
+			~initAndStartClock.value;
+		}
+		{
+			~stopClock.value;
+		}
+	});
+	clockDisplay = StaticText()
+	.font_(Font("Monaco", 30))
+	.string_("00:00")
+	.minSize_(200@40).front;
+	View().layout_(HLayout(slaveMasterButton, startStopButton, clockDisplay));
+};
+
+~initAndStartClock = {
+	~clockRoutine !? {~clockRoutine.free}; // prevent multiple clocks
+	~clockRoutine = Routine({
+		var now;
+		now = Main.elapsedTime; // do this on startup
+		inf.do{
+			var currentTimeInSeconds, minutes, seconds, minuteString, secondString, displayString, msgToSend;
+			currentTimeInSeconds = Main.elapsedTime - now;
+			~globalDataSpace.put(\currentTimeInSeconds, currentTimeInSeconds);
+			1.wait;
+		};
+	}).play(SystemClock) // can run thru cmd + period?
+};
+
+~stopClock = {
+	~clockRoutine.stop;
+};
+
+~makeTimeString = {arg time; // minutes or seconds;
+	if (time.asString.size == 1) { "0" ++ time.asString } { time.asString }
 };
 
 ~initNode = {
 	var me;
 	\initNode.postln;
 	~myNode.register(~myName);
-	~playerDataSpaces = ();
-	~expectedPlayerNames.do({arg expectedPlayerName;
-		var playerDataSpace;
-		playerDataSpace = OSCDataSpace(~myNode.addrBook, ~myNode.me, oscPath: expectedPlayerName);
-		~initDependencyHandler.value(expectedPlayerName, playerDataSpace);
-		~playerDataSpaces.put(expectedPlayerName, playerDataSpace);
-	});
-};
-
-~initDependencyHandler = {arg expectedPlayerName, playerDataSpace;
-	playerDataSpace.addDependant({arg dataSpace, val, key, value;
-		[dataSpace, val, key, value].postln;
+	~myNode.addrBook.addDependant({arg addrBook, what, who;
 		case
-		{ key == \setRefreshState } {
-			// update GUI
-			var incomingName, rowIndex, playerNameToRefresh, refreshButton, refreshButtonColumnIndex;
-			refreshButtonColumnIndex = 2;
-			rowIndex = ~expectedPlayerNames.indexOf(expectedPlayerName);
-			refreshButton = ~collaborativeGUI.children[rowIndex + 1].children[refreshButtonColumnIndex];
-			// + 1 here to account for title row
-			defer { refreshButton.value_(value.asInt); };
-			// perform action if me
-			if (expectedPlayerName == ~myName) {
-				if (value == true) {
-					\startingRefresh.postln;
-					~startRefreshing.value;
-				} {
-					\stoppingRefresh.postln;
-					~stopRefreshing.value;
+		{ what == \registeredName } {
+			if ( who.name == ~myName ) {
+				defer {
+					var playerNameLabel, rowIndex, playerNameLabelColumnIndex;
+					playerNameLabelColumnIndex = 0;
+					rowIndex = ~expectedPlayerNames.indexOf(~myName);
+					playerNameLabel = ~collaborativeGUI.children[rowIndex + 2].children[playerNameLabelColumnIndex];
+					playerNameLabel.background_(~onlineColor);
 				};
 			};
 		}
-		/*		{ key == \setRefreshRate } {
-		// update GUI
-		var incomingName, playerRowIndex, playerNameToRefresh, refreshTimeBox, refreshTimeColumnIndex;
-		refreshTimeColumnIndex = 3;
-		playerRowIndex = ~expectedPlayerNames.indexOf(expectedPlayerName);
-		refreshTimeBox = ~collaborativeGUI.children[playerRowIndex + 1].children[refreshTimeColumnIndex];
-		// + 1 here to account for title row
-		defer { refreshTimeBox.value(value); };
-		// perform action if me
-		/*			if (expectedPlayerName == ~myName) {
-		~autoRefreshTime = value
-		};*/
-		}*/
+		{ what == \wentOffline } {
+			if ( who.name == ~myName ) {
+				defer {
+					var playerNameLabel, rowIndex, playerNameLabelColumnIndex;
+					playerNameLabelColumnIndex = 0;
+					rowIndex = ~expectedPlayerNames.indexOf(~myName);
+					playerNameLabel = ~collaborativeGUI.children[rowIndex + 2].children[playerNameLabelColumnIndex];
+					playerNameLabel.background_(~offlineColor);
+				};
+			};
+		};
 	});
-};
+	~globalDataSpace = OSCDataSpace(~myNode.addrBook, ~myNode.me, '/globalDataSpace');
+	~globalDataSpace.addDependant({arg dataSpace, val, key, value;
+		case
+		{ key == \currentTimeInSeconds } {
+			var currentTime, minutes, seconds, minuteString, secondString, displayString, msgToSend;
+			// + 1 here to account for title row
+			currentTime = value;
+			minutes = (currentTime/60).asInt;
+			seconds = (currentTime%60).asInt;
+			minuteString = ~makeTimeString.value(minutes);
+			secondString = ~makeTimeString.value(seconds);
+			displayString = minuteString ++ ":" ++ secondString;
+			defer {
+				var clockGUI;
+				clockGUI = ~collaborativeGUI.children[0].children[2];
+				clockGUI.string_(displayString);
+			};
+		};
+	});
+	~playerDataSpaces = ();
+	~expectedPlayerNames.do({arg expectedPlayerName;
+		var playerDataSpace;
+		playerDataSpace = OSCDataSpace(~myNode.addrBook, ~myNode.me, expectedPlayerName);
+		~initDependancyHandler.value(expectedPlayerName, playerDataSpace);
+		~playerDataSpaces.put(expectedPlayerName, playerDataSpace);
+	});
+	};
 
-// gui:
-~myName = \graham;
-~expectedPlayerNames = [\aidan, \graham, \michael, \robin];
-~stretch = [3, 6, 2, 1];
-~autoRefreshTime = 1;
-~collaborativeGUI !? { ~collaborativeGUI.destroy };
-~collaborativeGUI = ~makeCollaborativeGUI.value.front;
-~myNode = NMLDecentralisedNode(surviveCmdPeriod: false, doWhenMeAdded: ~initNode );
+	~initDependancyHandler = {arg expectedPlayerName, playerDataSpace;
+		playerDataSpace.addDependant({arg dataSpace, val, key, value;
+			[dataSpace, val, key, value].postln;
+			case
+			{ key == \refreshState } {
+				// update GUI:
+				var incomingName, rowIndex, playerNameToRefresh, refreshButton, refreshButtonColumnIndex;
+				refreshButtonColumnIndex = 2;
+				rowIndex = ~expectedPlayerNames.indexOf(expectedPlayerName);
+				refreshButton = ~collaborativeGUI.children[rowIndex + 1].children[refreshButtonColumnIndex];
+				// + 1 here to account for title row
+				defer { refreshButton.value_(value.asInt); };
+				// perform action if me:
+				if (expectedPlayerName == ~myName) {
+					if (value == true) {
+						~startRefreshing.value;
+					} {
+						~stopRefreshing.value;
+					};
+				};
+			}
+			{ key == \refreshRate } {
+				// update GUI:
+				var incomingName, playerRowIndex, playerNameToRefresh, refreshTimeBox, refreshTimeColumnIndex;
+				refreshTimeColumnIndex = 3;
+				playerRowIndex = ~expectedPlayerNames.indexOf(expectedPlayerName);
+				refreshTimeBox = ~collaborativeGUI.children[playerRowIndex + 1].children[refreshTimeColumnIndex];
+				// + 1 here to account for title row
+				defer { refreshTimeBox.value_(value); };
+				// perform action if me:
+				if (expectedPlayerName == ~myName) {
+					~autoRefreshTime = value;
+				};
+			}
+		});
+	};
+
+	// gui:
+	~myName = \graham;
+	~expectedPlayerNames = [\aidan, \graham, \michael, \robin];
+	~stretch = [3, 6, 2, 1];
+	~autoRefreshTime = 1;
+	~collaborativeGUI !? { ~collaborativeGUI.destroy };
+	~collaborativeGUI = ~makeCollaborativeGUI.value.front;
+	~isClockMaster = false;
+	~myNode = NMLDecentralisedNode(doWhenMeAdded: ~initNode ); // survive command period
 )
 
 // test
@@ -302,18 +366,12 @@ case
 // SYNTH GUI's
 
 RangeSlider(nil, Rect(0, 0, 200, 20)).orientation_(\horizontal).front
-
-
-GUI
-
 EnvelopeView().front
-
 
 t_trig
 s.boot
 
 Ndef(\test, {arg freq = 444; SinOsc.ar(freq) }).play
-
 Ndef(\test).set(\freq, 888)
 
 (
