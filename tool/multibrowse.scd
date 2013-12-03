@@ -76,36 +76,19 @@ Server.killAll
 
 ~initDisplayOSCFuncs = {
 	~sonificationOscPaths.collect{arg oscPath;
-		OSCFunc({arg msg;
-			var playerName, parameters;
-			playerName = msg[1];
-			parameters = msg.drop(2);
+		OSCFunc({arg msg; // receive locally from python
+			var parameters;
+			parameters = msg.drop(1);
 			case
 			{oscPath == '/start'} {
-				var host, path;
-				# host, path = parameters;
-				msg.postln;
-				[host, host.class.postln];
-				if (~domainToSynthMappingDict.keys.includes(host)) {
-					defer {
-						~domainToSynthMappingDict.at(host).at(\domainLabel).background_(Color.green);
-						[playerName, playerName.class].postln;
-						~expectedPlayerDict.at(playerName).at(\hostLabel).string_(host);
-						~expectedPlayerDict.at(playerName).at(\pathLabel).string_(path);
-					};
-				};
+				var responseCode, host, path;
+				# responseCode, host, path = parameters; // there are more params here, actually!
+				~playerDataSpaces.at(~myName).put(\start, [host, path]); // pass on to all players
 			}
 			{oscPath == '/stop'} {
 				var host, path;
 				# host, path = parameters;
-				msg.postln;
-				if (~domainToSynthMappingDict.keys.includes(host)) {
-					defer {
-						~domainToSynthMappingDict.at(host).at(\domainLabel).background_(Color.white);
-						~expectedPlayerDict.at(playerName).at(\hostLabel).string_(host);
-						~expectedPlayerDict.at(playerName).at(\pathLabel).string_(path);
-					};
-				};
+				~playerDataSpaces.at(~myName).put(\stop, [host, path]); // pass on to all players
 			};
 		}, oscPath);
 	};
@@ -113,26 +96,23 @@ Server.killAll
 
 ~initSonificationOSCFuncs = {
 	~sonificationOscPaths.collect{arg oscPath;
-		OSCFunc({arg msg;
-			var playerName, parameters;
-			playerName = msg[1];
-			parameters = msg.drop(2);
-			if (~playerStreamButtonDict.at(playerName)) { // if is true
-				case
-				{oscPath == '/start'} {
-					var host, path;
-					# host, path = parameters;
-					if (~synth.isPlaying) {~synth.free};
-					~synth = Synth(host,[\out,10],s,'addToHead');
-					NodeWatcher.register(~synth);
-					// if (~allowedHosts.includes(host.asSymbol)) {};
-				}
-				{oscPath == '/stop'} {
-					var host, path;
-					# host, path = parameters;
-					~synth.free;
-					// if (~allowedHosts.includes(host.asSymbol)) {};
-				}
+		OSCFunc({arg msg; // receive locally from python
+			var parameters;
+			parameters = msg.drop(1);
+			case
+			{oscPath == '/start'} {
+				var responseCode, host, path;
+				# responseCode, host, path = parameters;
+				if (~synth.isPlaying) {~synth.free};
+				~synth = Synth(host,[\out,10],s,'addToHead');
+				NodeWatcher.register(~synth);
+				// if (~allowedHosts.includes(host.asSymbol)) {};
+			}
+			{oscPath == '/stop'} {
+				var host, path;
+				# host, path = parameters;
+				~synth.free;
+				// if (~allowedHosts.includes(host.asSymbol)) {};
 			};
 		}, oscPath);
 	};
@@ -209,7 +189,6 @@ Server.killAll
 
 ~makeClockGUI = {
 	var domainDict, titleText, slaveMasterButton, startStopButton, clockDisplay;
-
 	titleText = StaticText().string_("Clock:");
 	slaveMasterButton = Button()
 	.states_([["master"], ["slave"]])
@@ -423,8 +402,31 @@ Server.killAll
 
 ~initDependancyHandler = {arg expectedPlayerName, playerDataSpace;
 	playerDataSpace.addDependant({arg dataSpace, val, key, value;
-		[dataSpace, val, key, value].postln;
+		// [dataSpace, val, key, value].postln;
 		case
+		{ key == \start } {
+			var host, path;
+			# host, path = value;
+			if (~domainToSynthMappingDict.keys.includes(host)) {
+				defer {
+					~domainToSynthMappingDict.at(host.postln).at(\domainLabel).background_(Color.green);
+					~expectedPlayerDict.at(~myName).at(\hostLabel).string_(host);
+					~expectedPlayerDict.at(~myName).at(\pathLabel).string_(path);
+				};
+			};
+
+		}
+		{ key == \stop } {
+			var host, path;
+			# host, path = value;
+			if (~domainToSynthMappingDict.keys.includes(host)) {
+				defer {
+					~domainToSynthMappingDict.at(host).at(\domainLabel).background_(Color.white);
+					~expectedPlayerDict.at(~myName).at(\hostLabel).string_(host);
+					~expectedPlayerDict.at(~myName).at(\pathLabel).string_(path);
+				};
+			};
+		}
 		{ key == \refreshState } {
 			// update GUI:
 			var refreshButton;
@@ -552,7 +554,7 @@ Server.killAll
 	~initAddrBookDependencies.value;
 	~initGlobalDataSpace.value;
 	~initPlayerDataSpaces.value;
-	// read in modal data
+/*	// read in modal data
 	~network = FDObjNetwork.loadObjNetwork(
 		"/Users/grahambooth/Desktop/Amalgam/PMNetwork/network.scd" // hard coding for now
 		// thisProcess.nowExecutingPath.dirname ++ "/network.scd"
@@ -565,7 +567,7 @@ Server.killAll
 		~initResonatorSynths.value;
 		s.sync;
 		//~initAndStartFakeWebActivityRoutine.value;
-	});
+	});*/
 };
 
 // MAIN:
