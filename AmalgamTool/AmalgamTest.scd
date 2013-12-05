@@ -1,0 +1,1 @@
+a = AmalgamTool(myName: \graham, server: s, chosenStrings: [0, 1, 2]);
