@@ -118,71 +118,75 @@ class DecoderThread(Thread):
                 for item in headerArray:
                     flowKey = (src, dst)
                     if item[0] == 'content-type' and 'text/html' in item[1]: # accept any kind of text content
+                        print headerArray
                         for item in headerArray:
                             if item[0] == 'content-length':
+                                print 'found fixed length'
                                 length = int(item[1])
                                 if length is not 0:
                                     self.parseFixedLengthResponse(flowKey, body, length, src, dst, tcp, responseCode)
                                 else:
                                     print "warning, content-length is zero!"
-                    elif item[0] == 'transfer-encoding' and item[1] == 'chunked':
-                        print 'found chunked'
-                        self.parseChunkedResponse(flowKey, body, src, dst, tcp, responseCode)
+                            elif item[0] == 'transfer-encoding' and item[1] == 'chunked':
+                                print 'found chunked'
+                                self.parseChunkedResponse(flowKey, body, src, dst, tcp, responseCode)
             else:
                 print "body not found"
 
     def parseFixedLengthResponse(self, flowKey, body, length, src, dst, tcp, responseCode):
         self.flowDict[flowKey] = {'body': body, 'type': 'fixedLength', 'length': length}
         self.doStart(flowKey, body, src, dst, tcp, responseCode, 'fixedLength')
-        contentLength = self.flowDict[flowKey]['length']
-        progress = float(len(body)) / float(contentLength)
-        packetContentLength = progress
-        searchResults = self.bodySearch(body, contentLength)
-        self.sendInfoAboutThisPacket(body, progress, packetContentLength, searchResults)  
+        self.parseExistingFixedLengthResponse(flowKey, body, src, dst, tcp)
 
     def parseChunkedResponse(self, flowKey, body, src, dst, tcp, responseCode):
         self.flowDict[flowKey] = {'body': body, 'type': 'chunked'}
         self.doStart(flowKey, body, src, dst, tcp, responseCode, 'chunked')
-        contentLength = self.arbitraryChunkedLength
-        progress = float(len(body)) / float(contentLength)
-        packetContentLength = progress
-        searchResults = self.bodySearch(body, contentLength)
-        self.sendInfoAboutThisPacket(body, progress, packetContentLength, searchResults)  
+        self.parseExistingChunkedResponse(flowKey, body, src, dst, tcp) 
         
     def parseExistingResponse(self, flowKey, body, src, dst, tcp):
         if self.flowDict[flowKey]['type'] == 'fixedLength':
-            contentLength = self.flowDict[flowKey]['length']
-            progress, packetContentLength = self.accumulateBodyAndReturnPacketPosition(flowKey, body, contentLength)
-            mappedSearchResults = self.bodySearch(body, contentLength)
-            self.sendInfoAboutThisPacket(body, progress, packetContentLength, mappedSearchResults)
-            self.detectFixedLengthEnd(flowKey, src, dst)
+            self.parseExistingFixedLengthResponse(flowKey, body, src, dst, tcp)
         elif self.flowDict[flowKey]['type'] == 'chunked':
-            contentLength = self.arbitraryChunkedLength
-            progress, packetContentLength = self.accumulateBodyAndReturnPacketPosition(flowKey, body, contentLength)
-            mappedSearchResults = self.bodySearch(body, contentLength)
-            self.sendInfoAboutThisPacket(body, progress, packetContentLength, mappedSearchResults)
-            self.detectChunkedEnd(body, src, dst)
+            self.parseExistingChunkedResponse(flowKey, body, src, dst, tcp) 
 
+    def parseExistingFixedLengthResponse(self, flowKey, body, src, dst, tcp):
+        contentLength = self.flowDict[flowKey]['length']
+        progress, packetContentLength = self.accumulateBodyAndReturnPacketPosition(flowKey, body, contentLength)
+        mappedSearchResults = self.bodySearch(body, contentLength)
+        self.sendInfoAboutThisPacket(body, progress, packetContentLength, mappedSearchResults)
+        self.detectFixedLengthEnd(flowKey, src, dst)
+
+    def parseExistingChunkedResponse(self, flowKey, body, src, dst, tcp):
+        contentLength = self.arbitraryChunkedLength
+        progress, packetContentLength = self.accumulateBodyAndReturnPacketPosition(flowKey, body, contentLength)
+        mappedSearchResults = self.bodySearch(body, contentLength)
+        self.sendInfoAboutThisPacket(body, progress, packetContentLength, mappedSearchResults)
+        self.detectChunkedEnd(body, src, dst)        
+        
     def accumulateBodyAndReturnPacketPosition(self, flowKey, body, contentLength):
-        existingBody = self.flowDict[flowKey]['body']       
+        existingBody = self.flowDict[flowKey]['body']
         newBody = self.flowDict[flowKey]['body'] = existingBody + body
         progress = float(len(newBody)) / float(contentLength)
         packetContentLength = float(len(body)) / float(contentLength)
-        print str(len(newBody)) + '/' + str(contentLength)
+        # print str(len(newBody)) + '/' + str(contentLength)
         return progress, packetContentLength
    
     def sendInfoAboutThisPacket(self, body, progress, packetContentLength, mappedSearchResults):
+        None
         # call or response - relevant?
-        self.oscSender('/progress', [progress])
+        # self.oscSender('/progress', [progress])
         # if mappedSearchResults: # if list is not empty
         # self.oscSender('/searchResults', mappedSearchResults)   
         # self.oscSender('/bodyLength', [packetContentLength])   
-        # self.oscSender('/body', [body])
+        # self.oscSender('/body, [body])
 
     def detectFixedLengthEnd(self, flowKey, src, dst):
-        accumulatedBodyLength = len(self.flowDict[flowKey]['body'])
+        body = self.flowDict[flowKey]['body']
+        accumulatedBodyLength = len(body)
         contentLength = self.flowDict[flowKey]['length']
+        print accumulatedBodyLength
         if accumulatedBodyLength > contentLength * 0.95: # temp fix for last packet not being received
+            # print body
             self.doStop(src, dst)
 
     def detectChunkedEnd(self, body, src, dst):
@@ -197,7 +201,8 @@ class DecoderThread(Thread):
         destinationPort = dst[1]
         scaledDestinationPort = self.scale(destinationPort, 49152, 65535, 0, 1)
         # no use to have the source Port as it will always be 80 (http)
-        self.oscSender('/start', [responseCode, host, path[0:20], destinationIP, sourceIP, destinationPort, encodingType])
+        self.oscSender('/start', [responseCode, host, path, destinationIP, sourceIP, destinationPort, encodingType])
+        # could truncate path here for diplay i.e. path[0:20]
 
     def doStop(self, src, dst):
         host = self.hostDict[(src, dst)]['host']
